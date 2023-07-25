@@ -38,6 +38,13 @@ qemu: ${EXEC}
 # Alvo: iniciar gdb
 gdb: ${EXEC}
 	gdb-multiarch -ex "set architecture arm" \
-						-ex "target extended-remote :1234" \
+						-ex "target extended-remote :3333" \
 						-ex "load" \
 						${EXEC}
+
+# Iniciar openocd
+ocd: 
+	@if pgrep openocd >/dev/null ; then\
+		echo "openocd já está executando"; \
+	else openocd -f evaluator7t.cfg & \
+	fi

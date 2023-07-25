@@ -39,7 +39,7 @@ reset:
    // Configura sp do modo IRQ
    mov r0, #0b10010
    msr cpsr, r0
-   mov r13, =stack_irq
+   ldr sp, =stack_irq
 
    // Configura sp do modo SVR:
    mov r0, #0b10011

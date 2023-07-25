@@ -1,0 +1,133 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+                0x0000000000000000                . = 0x0
+
+.reset          0x0000000000000000       0x30
+ *(.reset)
+ .reset         0x0000000000000000       0x30 kernel.o
+                0x0000000000008000                . = 0x8000
+
+.text           0x0000000000008000      0x314
+ *(.text)
+ .text          0x0000000000008000      0x20c kernel.o
+ .text          0x000000000000820c       0x98 sched.o
+                0x000000000000820c                yield
+                0x0000000000008220                getpid
+                0x0000000000008238                schedule
+ .text          0x00000000000082a4       0x70 main.o
+                0x00000000000082a4                main
+                0x00000000000082dc                main2
+
+.glue_7         0x0000000000008314        0x0
+ .glue_7        0x0000000000008314        0x0 linker stubs
+
+.glue_7t        0x0000000000008314        0x0
+ .glue_7t       0x0000000000008314        0x0 linker stubs
+
+.vfp11_veneer   0x0000000000008314        0x0
+ .vfp11_veneer  0x0000000000008314        0x0 linker stubs
+
+.v4_bx          0x0000000000008314        0x0
+ .v4_bx         0x0000000000008314        0x0 linker stubs
+
+.iplt           0x0000000000008314        0x0
+ .iplt          0x0000000000008314        0x0 kernel.o
+
+.rel.dyn        0x0000000000008314        0x0
+ .rel.iplt      0x0000000000008314        0x0 kernel.o
+
+.data           0x0000000000008314       0x8c
+ *(.data)
+ .data          0x0000000000008314        0x0 kernel.o
+ .data          0x0000000000008314       0x8c sched.o
+                0x0000000000008314                tcb
+                0x000000000000839c                curr_tcb
+ .data          0x00000000000083a0        0x0 main.o
+                0x00000000000083a0                inicio_bss = .
+
+.igot.plt       0x00000000000083a0        0x0
+ .igot.plt      0x00000000000083a0        0x0 kernel.o
+
+.bss            0x00000000000083a0        0x4
+ *(.bss)
+ .bss           0x00000000000083a0        0x0 kernel.o
+ .bss           0x00000000000083a0        0x4 sched.o
+                0x00000000000083a0                tid
+ .bss           0x00000000000083a4        0x0 main.o
+                0x00000000000083a4                . = ALIGN (0x4)
+                0x00000000000083a4                fim_bss = .
+                0x00000000000083a4                heap_start = .
+                0x00000000000093a4                . = (. + 0x1000)
+                0x00000000000093a8                . = ALIGN (0x8)
+                0x00000000000093a8                stack_usr1 = .
+                0x000000000000a3a8                . = (. + 0x1000)
+                0x000000000000a3a8                . = ALIGN (0x8)
+                0x000000000000a3a8                stack_usr2 = .
+                0x000000000000b3a8                . = (. + 0x1000)
+                0x000000000000b3a8                . = ALIGN (0x8)
+                0x000000000000b3a8                stack_irq = .
+                0x000000000000c3a8                . = (. + 0x1000)
+                0x000000000000c3a8                . = ALIGN (0x8)
+                0x000000000000c3a8                stack_svr = .
+LOAD kernel.o
+LOAD sched.o
+LOAD main.o
+OUTPUT(kernel.elf elf32-littlearm)
+LOAD linker stubs
+
+.ARM.attributes
+                0x0000000000000000       0x2b
+ .ARM.attributes
+                0x0000000000000000       0x16 kernel.o
+ .ARM.attributes
+                0x0000000000000016       0x2a sched.o
+ .ARM.attributes
+                0x0000000000000040       0x2a main.o
+
+.comment        0x0000000000000000       0x33
+ .comment       0x0000000000000000       0x33 sched.o
+                                         0x34 (size before relaxing)
+ .comment       0x0000000000000033       0x34 main.o
+
+.debug_line     0x0000000000000000      0x1dd
+ .debug_line    0x0000000000000000       0xd9 kernel.o
+ .debug_line    0x00000000000000d9       0x9b sched.o
+ .debug_line    0x0000000000000174       0x69 main.o
+
+.debug_info     0x0000000000000000      0x240
+ .debug_info    0x0000000000000000       0x22 kernel.o
+ .debug_info    0x0000000000000022      0x166 sched.o
+ .debug_info    0x0000000000000188       0xb8 main.o
+
+.debug_abbrev   0x0000000000000000      0x17b
+ .debug_abbrev  0x0000000000000000       0x12 kernel.o
+ .debug_abbrev  0x0000000000000012       0xf4 sched.o
+ .debug_abbrev  0x0000000000000106       0x75 main.o
+
+.debug_aranges  0x0000000000000000       0x68
+ .debug_aranges
+                0x0000000000000000       0x28 kernel.o
+ .debug_aranges
+                0x0000000000000028       0x20 sched.o
+ .debug_aranges
+                0x0000000000000048       0x20 main.o
+
+.debug_str      0x0000000000000000      0x167
+ .debug_str     0x0000000000000000       0x53 kernel.o
+ .debug_str     0x0000000000000053      0x102 sched.o
+                                        0x174 (size before relaxing)
+ .debug_str     0x0000000000000155       0x12 main.o
+                                        0x12d (size before relaxing)
+
+.debug_ranges   0x0000000000000000       0x20
+ .debug_ranges  0x0000000000000000       0x20 kernel.o
+
+.debug_frame    0x0000000000000000       0x98
+ .debug_frame   0x0000000000000000       0x50 sched.o
+ .debug_frame   0x0000000000000050       0x48 main.o
