@@ -161,6 +161,7 @@ thread_switch_irq:
    push {r1, r2, lr}
    bl disable_timer1_int
    bl clearDisplay
+   bl clearLeds
    pop {r1, r2, lr}
 
    /*
