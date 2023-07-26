@@ -1,3 +1,4 @@
+.include "evlt7t.inc"
 
 /**
  * Vetor de interrupções do ARM
@@ -22,14 +23,7 @@ swi_addr:   .word trata_swi
 irq_addr:   .word trata_irq
 
 .data
-.set INTPND, 0x03ff4004 // interrupções pendentes em 1
-
-.set INTMOD, 0x03ff4000 // 1 se IRQ, 0 se FIQ (rápida)
-.set INTMSK, 0x03ff4008 // 1 se mascarado, 0 se habilitado
-.set TMOD, 0x03ff6000   // configuração dos temporizadores
-.set TDATA1, 0x03ff6008 // registrador de recarda do temp1
-
-.set TEMPO, 49999999    // valor de recarga para 1s em 50 MHz
+.set TEMPO, 499999990    // valor de recarga para 1s em 50 MHz
 
 .text
 /*
@@ -68,6 +62,8 @@ start:
    ldr r0, =tcb            // curr_tcb = &tcb[0]
    ldr r1, =curr_tcb
    str r0, [r1]
+   bl setupLeds
+   bl clearDisplay
    b context_change
 
 /*
@@ -164,6 +160,7 @@ context_change:
 thread_switch_irq:
    push {r1, r2, lr}
    bl disable_timer1_int
+   bl clearDisplay
    pop {r1, r2, lr}
 
    /*
@@ -175,7 +172,8 @@ thread_switch_irq:
    stmib r0, {r1-r14}^          // registradores r1-r14 do usuário
    
    // salva endereço de retorno (lr)
-   str lr, [r0, #60]
+   sub r1, lr, #4
+   str r1, [r0, #60]
 
    // copia o spsr do usuário em r1 e salva no tcb
    mrs r1, spsr
@@ -210,7 +208,7 @@ context_change_irq:
    pop {r1, r2, lr}
 
    // retorna para o thread, mudando o modo 
-   subs pc, lr, #4
+   movs pc, lr
 
 init_timer1:
     // configura interrupção 11 (timer 1) como IRQ
@@ -255,4 +253,3 @@ disable_timer1_int:
    bic r1, r1, #(0b111 << 3)    // reinicia modo do timer 1
    str r1, [r2]
    bx lr
-    

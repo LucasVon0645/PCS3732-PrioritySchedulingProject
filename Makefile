@@ -1,4 +1,4 @@
-FONTES = kernel.s sched.c main.c
+FONTES = kernel.s sched.c main.c iomanager.c
 
 EXEC = kernel.elf
 MAP = kernel.map
@@ -40,6 +40,7 @@ gdb: ${EXEC}
 	gdb-multiarch -ex "set architecture arm" \
 						-ex "target extended-remote :3333" \
 						-ex "load" \
+						-ex "b start" \
 						${EXEC}
 
 # Iniciar openocd

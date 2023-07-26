@@ -1,20 +1,20 @@
 
 #include <stdint.h>
 #include "kernel.h"
+#include "iomanager.h"
 
 int main(void) {
    int i;
    for(;;) {
-      for(i=0; i<5; i++) ;
-      yield();
+      lightUpLed(green1);
+      setDisplay(1);
    }
 }
 
 int main2(void) {
    int i;
    for(;;) {
-      for(i=0; i<7; i++) ;
-      yield();
+      lightUpLed(orange);
+      setDisplay(2);
    }
 }
-

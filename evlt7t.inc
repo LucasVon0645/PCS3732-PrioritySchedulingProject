@@ -8,16 +8,16 @@
 /*
  * Endereços dos registradores do controlador de interrupções.
  */
- .set INTMOD, 0x03ff4000
- .set INTPND, 0x03ff4004
- .set INTMSK, 0x03ff4008
+ .set INTMOD, 0x03ff4000 //1 se IRQ, 0 se FIQ (rápida)
+ .set INTPND, 0x03ff4004 // interrupções pendentes em 1
+ .set INTMSK, 0x03ff4008 // 1 se mascarado, 0 se habilitado
 
 /*
  * Endereços dos registradores dos Timers.
  */
- .set TMOD, 0x03ff6000
+ .set TMOD, 0x03ff6000 // configuração dos temporizadores
  .set TDATA0, 0x03ff6004
- .set TDATA1, 0x03ff6008
+ .set TDATA1, 0x03ff6008 // registrador de recarga do temp1
  .set TCNT0, 0x03ff600c
  .set TCNT1, 0x03ff6010
 
