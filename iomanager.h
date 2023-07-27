@@ -65,6 +65,7 @@ enum led {green1 = 4, yellow = 5, orange = 6, green2 = 7};
 typedef enum led led_t;
 
 void setupLeds();
+void setupDisplay();
 
 void lightUpLed(led_t ledColor);
 

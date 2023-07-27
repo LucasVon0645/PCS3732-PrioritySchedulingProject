@@ -1,9 +1,15 @@
 #include "iomanager.h"
 
 void setupLeds() {
-    int32_t mask = 0b1111;
+    int32_t mask = 0b1111 << 4;
     IOPMOD |= mask; // configura leds como saída
     IOPDATA &= ~(mask); // desliga todos os leds
+}
+
+void setupDisplay() {
+    uint32_t mask = 0b1111111 << 10;
+    IOPMOD |= mask; // configura display como saída
+    IOPDATA &= ~(mask); // desliga todos os segmentos do display
 }
 
 void lightUpLed(led_t ledColor) {

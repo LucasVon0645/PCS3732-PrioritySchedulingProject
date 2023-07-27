@@ -1,4 +1,5 @@
 .include "evlt7t.inc"
+.include "timer.s"
 
 /**
  * Vetor de interrupções do ARM
@@ -59,11 +60,11 @@ start:
    mov r0, #0              // tid = 0
    ldr r1, =tid
    str r0, [r1]
-   ldr r0, =tcb            // curr_tcb = &tcb[0]
+   ldr r0, =tcb_array            // curr_tcb = &tcb[0]
    ldr r1, =curr_tcb
    str r0, [r1]
    bl setupLeds
-   bl clearDisplay
+   bl setupDisplay
    b context_change
 
 /*
@@ -73,7 +74,7 @@ start:
 trata_swi:
    // desativar iterrupção
    cmp r0, #1          // função yield: troca de thread
-   beq thread_switch
+   beq thread_switch_swi
 
    cmp r0, #2          // função getpid: retorna a identificação do thread atual
    beq getid
@@ -85,16 +86,19 @@ trata_irq:
   /*
    * Salva registradores e verifica causa da interrupção.
    */
-  push {r0, r1, lr}
+  push {r0, r1, r2, lr}
   ldr r1, =INTPND
-  ldr r0, [r1]                      // r0 contém INTPND
+  ldr r0, [r1]  // r0 contém INTPND
   tst r0, #(1 << 11)
-  bne timer1_irq
-  bl reconhece_irq
-  pop {r0, r1, lr}
-  subs pc, lr, #4
+  bne timer1_irq // tratamento para interrupção do timer1 -> mudança de contexto
+  bl reconhece_irq // ignora interrupções que não sejam do timer1
+  pop {r0, r1, r2, lr}
+  subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
 timer1_irq:
-   pop {r0, r1, lr}
+   bl disable_timer1_int
+   bl clearDisplay
+   bl clearLeds
+   pop {r0, r1, r2, lr}
    b thread_switch_irq
 
 reconhece_irq:
@@ -114,7 +118,7 @@ getid:
    movs pc, lr
 
 /* Salva o contexto do usuário no tcb, com escalonamento cooperativo */
-thread_switch:
+thread_switch_swi:
    push {r0}
    ldr r0, =curr_tcb
    ldr r0, [r0]
@@ -132,45 +136,14 @@ thread_switch:
    str r1, [r0]
 
    // escala o próximo processo 
-   bl schedule
-
-/* Retorna no conexto de outro thread, com escalonamento cooperativo */
-context_change:
-   ldr r0, =curr_tcb
-   ldr r0, [r0]
-
-   // restaura spsr do usuário.
-   ldr r1, [r0, #64]
-   msr spsr, r1
-
-   // Restaura r1-r14 originais, lr de retorno e finalmente r0
-   ldmib r0, {r1-r14}^
-   ldr lr, [r0, #60]
-   ldr r0, [r0]
-
-   // habilita timer1
-   push {r1, r2, lr}
-   bl enable_timer1_int
-   pop {r1, r2, lr}
-
-   // retorna para o thread, mudando o modo 
-   movs pc, lr
+   bl schedule_mfqs
 
 /* Troca de contextos com escalonamento preemptivo */
 thread_switch_irq:
-   push {r1, r2, lr}
-   bl disable_timer1_int
-   bl clearDisplay
-   bl clearLeds
-   pop {r1, r2, lr}
-
-   /*
-    * Salva o contexto do usuário no tcb
-    */
    push {r0}
    ldr r0, =curr_tcb
    ldr r0, [r0]
-   stmib r0, {r1-r14}^          // registradores r1-r14 do usuário
+   stmib r0, {r1-r14}^ // registradores r1-r14 do usuário
    
    // salva endereço de retorno (lr)
    sub r1, lr, #4
@@ -185,10 +158,10 @@ thread_switch_irq:
    str r1, [r0]
 
    // escala o próximo processo 
-   bl schedule
+   bl schedule_mfqs
 
-/* Retorna no contexto de outro thread tendo ocorrido escalonamento preemptivo */
-context_change_irq:
+/* Retorna no contexto de outro thread */
+context_change:
    ldr r0, =curr_tcb
    ldr r0, [r0]
 
@@ -210,47 +183,3 @@ context_change_irq:
 
    // retorna para o thread, mudando o modo 
    movs pc, lr
-
-init_timer1:
-    // configura interrupção 11 (timer 1) como IRQ
-    ldr r2, =INTMOD
-    ldr r1, [r2]
-    bic r1, r1, #(1 << 11)      // configura como IRQ
-    str r1, [r2]
-
-    // habilita a interrupção 21 (global) e habilita interrupção do timer1
-    ldr r2, =INTMSK
-    ldr r1, [r2]
-    bic r1, r1, #(1 << 11) // bic ativa (0), orr desativa (1)
-    bic r1, r1, #(1 << 21)
-    str r1, [r2]
-
-    // configura valor de recarga de 1s (período)
-    ldr r2, =TDATA1
-    ldr r1, =TEMPO
-    str r1, [r2]
-
-    // desligar o timer 1
-    ldr r2, =TMOD
-    ldr r1, [r2]
-    bic r1, r1, #(0b111 << 3)    // reinicia modo do timer 1
-    str r1, [r2]
-
-    bx lr                       // retorna da subrotina
-
-enable_timer1_int:
-   // liga timer1
-   ldr r2, =TMOD
-   ldr r1, [r2]
-   bic r1, r1, #(0b111 << 3)
-   orr r1, r1, #(0b001 << 3)    // habilita o timer
-   str r1, [r2]
-   bx lr
-
-disable_timer1_int:
-   // desligar o timer 1
-   ldr r2, =TMOD
-   ldr r1, [r2]
-   bic r1, r1, #(0b111 << 3)    // reinicia modo do timer 1
-   str r1, [r2]
-   bx lr
