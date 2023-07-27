@@ -1,4 +1,4 @@
-FONTES = kernel.s sched.c main.c
+FONTES = kernel.s sched.c main.c queue.c kernel.c
 
 EXEC = kernel.elf
 MAP = kernel.map

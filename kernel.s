@@ -65,7 +65,7 @@ start:
    mov r0, #0              // tid = 0
    ldr r1, =tid
    str r0, [r1]
-   ldr r0, =tcb            // curr_tcb = &tcb[0]
+   ldr r0, =tcb_array            // curr_tcb = &tcb[0]
    ldr r1, =curr_tcb
    str r0, [r1]
    b context_change
@@ -136,7 +136,7 @@ thread_switch:
    str r1, [r0]
 
    // escala o próximo processo 
-   bl schedule
+   bl schedule_mfqs
 
 /* Retorna no conexto de outro thread, com escalonamento cooperativo */
 context_change:
@@ -186,7 +186,7 @@ thread_switch_irq:
    str r1, [r0]
 
    // escala o próximo processo 
-   bl schedule
+   bl schedule_mfqs
 
 /* Retorna no contexto de outro thread tendo ocorrido escalonamento preemptivo */
 context_change_irq:
