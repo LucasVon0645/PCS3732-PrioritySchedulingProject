@@ -1,5 +1,9 @@
 .include "evlt7t.inc"
 
+.data
+.set TEMPO, 499999990    // valor de recarga para 1s em 50 MHz
+
+.text
 init_timer1:
     // configura interrupção 11 (timer 1) como IRQ
     ldr r2, =INTMOD

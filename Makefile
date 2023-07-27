@@ -1,4 +1,4 @@
-FONTES = kernel.s sched.c main.c iomanager.c queue.c
+FONTES = kernel.s timer.s sched.c main.c iomanager.c queue.c
 
 EXEC = kernel.elf
 MAP = kernel.map
