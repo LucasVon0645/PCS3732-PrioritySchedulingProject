@@ -123,9 +123,9 @@ thread_switch_swi:
    ldr r0, =curr_tcb
    ldr r0, [r0]
    stmib r0, {r1-r14}^          // registradores r1-r14 do usuário
-   sub r1, lr, #4
-   // salva endereço de retorno (lr) -> pc do user
-   str r1, [r0, #60]
+   
+   // salva endereço de retorno (lr)
+   str lr, [r0, #60]
 
    // copia o spsr do usuário em r1 e salva no tcb
    mrs r1, spsr
