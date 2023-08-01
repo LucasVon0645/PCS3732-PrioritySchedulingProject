@@ -24,3 +24,7 @@ int dequeue_by_priority(int priority, MultilevelQueue* multi_queue) {
     }
     return dequeue(multi_queue->queues[priority]);
 }
+
+int queue_max_quanta(int priority, MultilevelQueue* multi_queue) {
+    return multi_queue->queue_quanta[priority];
+}

@@ -1,7 +1,7 @@
 .include "evlt7t.inc"
 
 .data
-.set TEMPO, 8999999    // valor de recarga para 1s em 50 MHz
+.set TEMPO, 25000000     // valor de recarga para 0.5s em 50 MHz
 
 .text
 .global init_timer1

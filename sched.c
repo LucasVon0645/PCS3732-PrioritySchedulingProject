@@ -65,7 +65,7 @@ volatile tcb *current_tcb = &tcb_array[0];
 Queue queue0 = {{1, 2, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 1};
 Queue queue1 = {{0}, 0, 0};
 Queue queue2 = {{0}, -1, -1};
-MultilevelQueue multi_queue = {{&queue0, &queue1, &queue2}};
+MultilevelQueue multi_queue = {{&queue0, &queue1, &queue2}, {2, 5, 10}};
 
 
 void ageAllThreads() {}
@@ -77,12 +77,14 @@ int thread_scheduler() {
 void update_executed_thread(volatile tcb* cur_thread) {
    int tid = cur_thread->tid;
    int priority = cur_thread->priority;
-   int remaining_quantums = cur_thread->exc_slots--;
+   int remaining_quanta = --cur_thread->exc_slots;
 
-    if (remaining_quantums == 0 && priority < NUM_OF_QUEUES - 1) {
-        cur_thread->priority = priority + 1;
+    if (remaining_quanta == 0 && priority < NUM_OF_QUEUES - 1) {
+        int new_priority = priority + 1;
+        cur_thread->priority = new_priority;
+        cur_thread->exc_slots = queue_max_quanta(new_priority, &multi_queue);
         dequeue_by_priority(priority, &multi_queue);
-        enqueue_by_priority(tid, priority + 1, &multi_queue);
+        enqueue_by_priority(tid, new_priority, &multi_queue);
     }
 
 
