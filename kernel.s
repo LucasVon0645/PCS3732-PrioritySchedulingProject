@@ -1,5 +1,4 @@
 .include "evlt7t.inc"
-.include "timer.s"
 
 /**
  * Vetor de interrupções do ARM
@@ -24,22 +23,29 @@ swi_addr:   .word trata_swi
 irq_addr:   .word trata_irq
 
 .data
-.set TEMPO, 499999990    // valor de recarga para 1s em 50 MHz
+.set TEMPO, 49999999    // valor de recarga para 1s em 50 MHz
 
 .text
 /*
  * Ponto de entrada após reset.
  */
 reset:
-   // Configura sp do modo IRQ
+   // Configura modo IRQ
    mov r0, #0b10010
    msr cpsr, r0
    ldr sp, =stack_irq
 
-   // Configura sp do modo SVR:
+   // Configura modo SVR:
    mov r0, #0b10011
+   orr r0, r0, #(1 << 7) // configura bit IRQ para '1' (desabilitado)
    msr cpsr, r0
    ldr sp, =stack_svr
+
+   // Configura modo USR:
+   @ mov r0, #0b10000
+   @ bic r0, r0, #(1 << 7) // configura bit IRQ para '0' (habilitado)
+   @ msr cpsr, r0
+   @ ldr sp, =stack_usr
 
    bl init_timer1
 
@@ -60,11 +66,11 @@ start:
    mov r0, #0              // tid = 0
    ldr r1, =tid
    str r0, [r1]
-   ldr r0, =tcb_array            // curr_tcb = &tcb[0]
-   ldr r1, =curr_tcb
+   ldr r0, =tcb_array            // current_tcb = &tcb[0]
+   ldr r1, =current_tcb
    str r0, [r1]
-   bl setupLeds
-   bl setupDisplay
+   // bl setupLeds
+   // bl setupDisplay
    b context_change
 
 /*
@@ -120,7 +126,7 @@ getid:
 /* Salva o contexto do usuário no tcb, com escalonamento cooperativo */
 thread_switch_swi:
    push {r0}
-   ldr r0, =curr_tcb
+   ldr r0, =current_tcb
    ldr r0, [r0]
    stmib r0, {r1-r14}^          // registradores r1-r14 do usuário
    
@@ -141,7 +147,7 @@ thread_switch_swi:
 /* Troca de contextos com escalonamento preemptivo */
 thread_switch_irq:
    push {r0}
-   ldr r0, =curr_tcb
+   ldr r0, =current_tcb
    ldr r0, [r0]
    stmib r0, {r1-r14}^ // registradores r1-r14 do usuário
    
@@ -162,7 +168,7 @@ thread_switch_irq:
 
 /* Retorna no contexto de outro thread */
 context_change:
-   ldr r0, =curr_tcb
+   ldr r0, =current_tcb
    ldr r0, [r0]
 
    // restaura spsr do usuário.

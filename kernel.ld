@@ -36,6 +36,10 @@ SECTIONS {                  /* arquivo kernel.ld para QEMU arm virt */
 
   . = . + 4096;
   . = ALIGN(8);
+  stack_usr3 = .;
+
+  . = . + 4096;
+  . = ALIGN(8);
   stack_irq = .;
 
   . = . + 4096;

@@ -1,9 +1,10 @@
 .include "evlt7t.inc"
 
 .data
-.set TEMPO, 499999990    // valor de recarga para 1s em 50 MHz
+.set TEMPO, 8999999    // valor de recarga para 1s em 50 MHz
 
 .text
+.global init_timer1
 init_timer1:
     // configura interrupção 11 (timer 1) como IRQ
     ldr r2, =INTMOD
@@ -31,6 +32,7 @@ init_timer1:
 
     bx lr                       // retorna da subrotina
 
+.global enable_timer1_int
 enable_timer1_int:
    // liga timer1
    ldr r2, =TMOD
@@ -40,6 +42,7 @@ enable_timer1_int:
    str r1, [r2]
    bx lr
 
+.global disable_timer1_int
 disable_timer1_int:
    // desligar o timer 1
    ldr r2, =TMOD

@@ -13,8 +13,9 @@ void setupDisplay() {
 }
 
 void lightUpLed(led_t ledColor) {
-    clearLeds();
-    int32_t mask = 0b1 << ledColor;
+    uint32_t mask = 0b1111 << 4;
+    IOPDATA &= ~(mask);
+    mask = 0b1 << ledColor;
     IOPDATA |= mask;
 }
 
@@ -25,6 +26,7 @@ void setDisplay(int value) {
         uint32_t mask = 0b1111111 << 10;
 
         if ((IOPDATA & mask) != newCode) {
+            IOPDATA &= ~(mask);
             IOPDATA |= newCode;
         }
     }

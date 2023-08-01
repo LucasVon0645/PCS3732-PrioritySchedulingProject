@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include "multiqueue.h"
 
-int dequeue_highest_nonempty_queue(MultilevelQueue* multi_queue) {
+int highest_nonempty_queue_head(MultilevelQueue* multi_queue) {
     for(int i = 0; i < NUM_OF_QUEUES; i++) {
-        if (!isEmpty(multi_queue->queues[i])) return dequeue(multi_queue->queues[i]);
+        if (!isEmpty(multi_queue->queues[i])) return front(multi_queue->queues[i]);
     }
     return 0;
 }
