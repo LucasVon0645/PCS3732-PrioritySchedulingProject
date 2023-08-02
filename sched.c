@@ -75,9 +75,10 @@ int update_executed_thread(volatile tcb* cur_thread) {
 }
 
 void mfqs_scheduler() {
-   int next_tid = highest_nonempty_queue_head(&multi_queue);
-   tid = next_tid;
-   current_tcb = &tcb_array[next_tid];
+
+    int next_tid = highest_nonempty_queue_head(&multi_queue);
+    tid = next_tid;
+    current_tcb = &tcb_array[next_tid];
 }
 
 /**
