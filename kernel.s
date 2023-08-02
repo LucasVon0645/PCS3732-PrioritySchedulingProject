@@ -22,6 +22,7 @@ reset_addr: .word reset
 swi_addr:   .word trata_swi
 irq_addr:   .word trata_irq
 
+
 .text
 /*
  * Ponto de entrada após reset.
@@ -142,14 +143,11 @@ thread_switch_swi:
    bl schedule_mfqs
 
 /* Troca de contextos com escalonamento preemptivo */
-save_context:
+thread_switch_irq:
    push {r0}
    ldr r0, =current_tcb
    ldr r0, [r0]
-
    stmib r0, {r1-r14}^ // registradores r1-r14 do usuário
-
-   
    
    // salva endereço de retorno (lr)
    sub r1, lr, #4
