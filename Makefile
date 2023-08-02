@@ -1,4 +1,4 @@
-FONTES = os/kernel.s os/interrupts/timer.c os/os.c os/interrupts/interrupts.c os/scheduler/scheduler.c main.c os/iomanager.c os/scheduler/queue/multiqueue.c os/scheduler/queue/queue.c
+FONTES = os/kernel.s os/timer.s os/interrupts/timer.c os/os.c os/interrupts/interrupts.c os/scheduler/scheduler.c main.c os/iomanager.c os/scheduler/queue/multiqueue.c os/scheduler/queue/queue.c
 
 EXEC = kernel.elf
 MAP = kernel.map

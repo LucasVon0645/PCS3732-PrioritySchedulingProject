@@ -1,6 +1,7 @@
-.set INTPND, 0x03ff4004
+.include "./evlt7t.inc"
 
-/*
+
+/**
  * Vetor de interrupções do ARM
  */
 .section .reset, "ax"
@@ -19,9 +20,11 @@ panic:
    b panic
 
 reset_addr: .word reset
-swi_addr:   .word handle_swi
-irq_addr:   .word handle_irq
+swi_addr:   .word trata_swi
+irq_addr:   .word trata_irq
 
+.data
+.set TEMPO, 49999999    // valor de recarga para 1s em 50 MHz
 
 .text
 /*
@@ -39,18 +42,23 @@ reset:
    msr cpsr, r0
    ldr sp, =stack_svr
 
-   bl init_timer
+   // Configura modo USR:
+   @ mov r0, #0b10000
+   @ bic r0, r0, #(1 << 7) // configura bit IRQ para '0' (habilitado)
+   @ msr cpsr, r0
+   @ ldr sp, =stack_usr
+
+   bl init_timer1
 
    // Zera segmento .bss:
    mov r0, #0
    ldr r1, =inicio_bss
    ldr r2, =fim_bss
-
-loop_bss:
+loop_zera:
    cmp r1, r2
    bge start
    str r0, [r1], #4
-   b loop_bss
+   b loop_zera
 
 /*
  * Ponto de entrada: executa o primeiro thread (tid = 0).
@@ -62,44 +70,81 @@ start:
    ldr r0, =tcb_array            // current_tcb = &tcb[0]
    ldr r1, =current_tcb
    str r0, [r1]
-   b restore_context
+   bl setupLeds
+   bl setupDisplay
+   b context_change
 
 /*
  * Ponto de entrada do kernel.
  * Identifica a função solicitada e trata.
  */
-handle_swi:
+trata_swi:
    // desativar iterrupção
-   @ cmp r0, #1          // função yield: troca de thread
-   @ beq thread_switch_swi
+   cmp r0, #1          // função yield: troca de thread
+   beq thread_switch_swi
 
    cmp r0, #2          // função getpid: retorna a identificação do thread atual
-   beq get_tid
+   beq getid
 
    // outras funções do kernel vão aqui...
    movs pc, lr          // retorna
 
-
-handle_irq:
+trata_irq:
   /*
    * Salva registradores e verifica causa da interrupção.
    */
   push {r0, r1, r2, lr}
   ldr r1, =INTPND
   ldr r0, [r1]  // r0 contém INTPND
-  tst r0, #(1 << 10)
-  bne timer0_irq // tratamento para interrupção do timer1 -> mudança de contexto
-  bl recognize_all_interrupts // ignora interrupções que não sejam do timer1
+  tst r0, #(1 << 11)
+  bne timer1_irq // tratamento para interrupção do timer1 -> mudança de contexto
+  bl reconhece_irq // ignora interrupções que não sejam do timer1
   pop {r0, r1, r2, lr}
   subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
-
-timer0_irq:
-   bl stop_timer
+timer1_irq:
+   bl disable_timer1_int
    pop {r0, r1, r2, lr}
-   b save_context_irq
+   b thread_switch_irq
+
+reconhece_irq:
+  /*
+   * Fim do tratamento.
+   * Reconhece todas as interrupções.
+   */
+  ldr r1, =INTPND
+  ldr r0, [r1]
+  str r0, [r1]
+  bx lr
+
+/* Retorna a identificação do thread atual. */
+getid:
+   ldr r0, =tid
+   ldr r0, [r0]
+   movs pc, lr
+
+/* Salva o contexto do usuário no tcb, com escalonamento cooperativo */
+thread_switch_swi:
+   push {r0}
+   ldr r0, =current_tcb
+   ldr r0, [r0]
+   stmib r0, {r1-r14}^          // registradores r1-r14 do usuário
+   
+   // salva endereço de retorno (lr)
+   str lr, [r0, #60]
+
+   // copia o spsr do usuário em r1 e salva no tcb
+   mrs r1, spsr
+   str r1, [r0, #64]
+   
+   // finalmente, salva o r0 original no tcb
+   pop {r1}
+   str r1, [r0]
+
+   // escala o próximo processo 
+   bl scheduler_mfqs
 
 /* Troca de contextos com escalonamento preemptivo */
-save_context_irq:
+thread_switch_irq:
    push {r0}
    ldr r0, =current_tcb
    ldr r0, [r0]
@@ -121,7 +166,7 @@ save_context_irq:
    bl scheduler_mfqs
 
 /* Retorna no contexto de outro thread */
-restore_context:
+context_change:
    ldr r0, =current_tcb
    ldr r0, [r0]
 
@@ -136,16 +181,11 @@ restore_context:
 
    // reconhece todas interrupções, caso haja
    push {r1, r2, lr}
-   bl recognize_all_interrupts
+   bl reconhece_irq
    // habilita timer1
-   bl enable_timer
+   bl enable_timer1_int
    pop {r1, r2, lr}
 
    // retorna para o thread, mudando o modo 
    movs pc, lr
    
-/* Retorna a identificação do thread atual. */
-get_tid:
-   ldr r0, =tid
-   ldr r0, [r0]
-   movs pc, lr
