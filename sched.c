@@ -32,7 +32,7 @@ tcb tcb_array[3] =
         },
         0,
         1,
-        2
+        5
     },
     {
         {
@@ -44,7 +44,7 @@ tcb tcb_array[3] =
         },
         1,
         0,
-        5
+        2
     },
     {
         {
@@ -56,7 +56,7 @@ tcb tcb_array[3] =
         },
         2,
         0,
-        5
+        2
     }
 };
 
@@ -79,15 +79,18 @@ void update_executed_thread(volatile tcb* cur_thread) {
    int priority = cur_thread->priority;
    int remaining_quanta = --cur_thread->exc_slots;
 
-    if (remaining_quanta == 0 && priority < NUM_OF_QUEUES - 1) {
-        int new_priority = priority + 1;
-        cur_thread->priority = new_priority;
+    if (remaining_quanta == 0) {
+        int new_priority = priority;
+
+        if (priority < NUM_OF_QUEUES - 1) {
+            new_priority = priority + 1;
+            cur_thread->priority = new_priority;
+        }
+
         cur_thread->exc_slots = queue_max_quanta(new_priority, &multi_queue);
         dequeue_by_priority(priority, &multi_queue);
         enqueue_by_priority(tid, new_priority, &multi_queue);
     }
-
-
 }
 
 void schedule_mfqs(void) {

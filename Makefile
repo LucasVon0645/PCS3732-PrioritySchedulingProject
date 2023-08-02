@@ -41,6 +41,7 @@ gdb: ${EXEC}
 						-ex "target extended-remote :3333" \
 						-ex "load" \
 						-ex "b start" \
+						-ex "b sched.c:82"\
 						${EXEC}
 
 # Iniciar openocd

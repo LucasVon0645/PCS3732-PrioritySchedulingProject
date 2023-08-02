@@ -7,13 +7,13 @@
 .org 0
 vetor:
    ldr pc, reset_addr         // reset
-   b panic                    // instrução não definida
+   bl panic                    // instrução não definida
    ldr pc, swi_addr           // interrupção de software (chamada do kernel)
-   b panic                    // abort de instrução
-   b panic                    // abort de dados
+   bl panic                    // abort de instrução
+   bl panic                    // abort de dados
    nop
    ldr pc, irq_addr           // interrupção
-   b panic                    // interrupção rápida
+   bl panic                    // interrupção rápida
 
 panic:
    b panic
@@ -69,8 +69,8 @@ start:
    ldr r0, =tcb_array            // current_tcb = &tcb[0]
    ldr r1, =current_tcb
    str r0, [r1]
-   // bl setupLeds
-   // bl setupDisplay
+   bl setupLeds
+   bl setupDisplay
    b context_change
 
 /*
