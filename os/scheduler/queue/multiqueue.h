@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "queue.h"
 
 #define NUM_OF_QUEUES 3

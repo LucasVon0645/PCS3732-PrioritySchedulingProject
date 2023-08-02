@@ -1,5 +1,3 @@
-#include <stdint.h>
-
 #define MAX_THREAD_NUM 10
 
 typedef struct {

@@ -1,6 +1,6 @@
-.include "evlt7t.inc"
+.set INTPND, 0x03ff4004
 
-/**
+/*
  * Vetor de interrupções do ARM
  */
 .section .reset, "ax"
@@ -19,11 +19,9 @@ panic:
    b panic
 
 reset_addr: .word reset
-swi_addr:   .word trata_swi
-irq_addr:   .word trata_irq
+swi_addr:   .word handle_swi
+irq_addr:   .word handle_irq
 
-.data
-.set TEMPO, 49999999    // valor de recarga para 1s em 50 MHz
 
 .text
 /*
@@ -41,23 +39,18 @@ reset:
    msr cpsr, r0
    ldr sp, =stack_svr
 
-   // Configura modo USR:
-   @ mov r0, #0b10000
-   @ bic r0, r0, #(1 << 7) // configura bit IRQ para '0' (habilitado)
-   @ msr cpsr, r0
-   @ ldr sp, =stack_usr
-
-   bl init_timer1
+   bl init_timer
 
    // Zera segmento .bss:
    mov r0, #0
    ldr r1, =inicio_bss
    ldr r2, =fim_bss
-loop_zera:
+
+loop_bss:
    cmp r1, r2
    bge start
    str r0, [r1], #4
-   b loop_zera
+   b loop_bss
 
 /*
  * Ponto de entrada: executa o primeiro thread (tid = 0).
@@ -69,83 +62,44 @@ start:
    ldr r0, =tcb_array            // current_tcb = &tcb[0]
    ldr r1, =current_tcb
    str r0, [r1]
-   bl setupLeds
-   bl setupDisplay
-   b context_change
+   b restore_context
 
 /*
  * Ponto de entrada do kernel.
  * Identifica a função solicitada e trata.
  */
-trata_swi:
+handle_swi:
    // desativar iterrupção
-   cmp r0, #1          // função yield: troca de thread
-   beq thread_switch_swi
+   @ cmp r0, #1          // função yield: troca de thread
+   @ beq thread_switch_swi
 
    cmp r0, #2          // função getpid: retorna a identificação do thread atual
-   beq getid
+   beq get_tid
 
    // outras funções do kernel vão aqui...
    movs pc, lr          // retorna
 
-trata_irq:
+
+handle_irq:
   /*
    * Salva registradores e verifica causa da interrupção.
    */
   push {r0, r1, r2, lr}
   ldr r1, =INTPND
   ldr r0, [r1]  // r0 contém INTPND
-  tst r0, #(1 << 11)
-  bne timer1_irq // tratamento para interrupção do timer1 -> mudança de contexto
-  bl reconhece_irq // ignora interrupções que não sejam do timer1
+  tst r0, #(1 << 10)
+  bne timer0_irq // tratamento para interrupção do timer1 -> mudança de contexto
+  bl recognize_all_interrupts // ignora interrupções que não sejam do timer1
   pop {r0, r1, r2, lr}
   subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
-timer1_irq:
-   bl disable_timer1_int
-   bl clearDisplay
-   bl clearLeds
+
+timer0_irq:
+   bl stop_timer
    pop {r0, r1, r2, lr}
-   b thread_switch_irq
-
-reconhece_irq:
-  /*
-   * Fim do tratamento.
-   * Reconhece todas as interrupções.
-   */
-  ldr r1, =INTPND
-  ldr r0, [r1]
-  str r0, [r1]
-  bx lr
-
-/* Retorna a identificação do thread atual. */
-getid:
-   ldr r0, =tid
-   ldr r0, [r0]
-   movs pc, lr
-
-/* Salva o contexto do usuário no tcb, com escalonamento cooperativo */
-thread_switch_swi:
-   push {r0}
-   ldr r0, =current_tcb
-   ldr r0, [r0]
-   stmib r0, {r1-r14}^          // registradores r1-r14 do usuário
-   
-   // salva endereço de retorno (lr)
-   str lr, [r0, #60]
-
-   // copia o spsr do usuário em r1 e salva no tcb
-   mrs r1, spsr
-   str r1, [r0, #64]
-   
-   // finalmente, salva o r0 original no tcb
-   pop {r1}
-   str r1, [r0]
-
-   // escala o próximo processo 
-   bl schedule_mfqs
+   b save_context_irq
 
 /* Troca de contextos com escalonamento preemptivo */
-thread_switch_irq:
+save_context_irq:
    push {r0}
    ldr r0, =current_tcb
    ldr r0, [r0]
@@ -164,10 +118,10 @@ thread_switch_irq:
    str r1, [r0]
 
    // escala o próximo processo 
-   bl schedule_mfqs
+   bl scheduler_mfqs
 
 /* Retorna no contexto de outro thread */
-context_change:
+restore_context:
    ldr r0, =current_tcb
    ldr r0, [r0]
 
@@ -182,11 +136,16 @@ context_change:
 
    // reconhece todas interrupções, caso haja
    push {r1, r2, lr}
-   bl reconhece_irq
+   bl recognize_all_interrupts
    // habilita timer1
-   bl enable_timer1_int
+   bl enable_timer
    pop {r1, r2, lr}
 
    // retorna para o thread, mudando o modo 
    movs pc, lr
    
+/* Retorna a identificação do thread atual. */
+get_tid:
+   ldr r0, =tid
+   ldr r0, [r0]
+   movs pc, lr

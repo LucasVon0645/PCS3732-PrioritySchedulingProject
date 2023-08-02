@@ -1,5 +1,3 @@
-#include <stdint.h>
-
 #define MAX_QUEUE_SIZE 10
 
 // Estrutura da fila dos PIDs

@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "thread_table.h"
 
 void add_to_table(thread_table* table, tcb* new_tcb) {
