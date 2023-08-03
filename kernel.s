@@ -101,9 +101,6 @@ trata_irq:
   pop {r0, r1, r2, lr}
   subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
 timer1_irq:
-   bl disable_timer1_int
-   bl clearDisplay
-   bl clearLeds
    pop {r0, r1, r2, lr}
    b thread_switch_irq
 
@@ -184,7 +181,6 @@ context_change:
    push {r1, r2, lr}
    bl reconhece_irq
    // habilita timer1
-   bl enable_timer1_int
    pop {r1, r2, lr}
 
    // retorna para o thread, mudando o modo 

@@ -28,6 +28,7 @@ init_timer1:
     ldr r2, =TMOD
     ldr r1, [r2]
     bic r1, r1, #(0b111 << 3)    // reinicia modo do timer 1
+    orr r1, r1, #(0b001 << 3)    // habilita o timer
     str r1, [r2]
 
     bx lr                       // retorna da subrotina
