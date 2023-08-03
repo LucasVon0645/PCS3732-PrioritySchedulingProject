@@ -1,5 +1,4 @@
-.include "./evlt7t.inc"
-
+.include "evlt7t.inc"
 
 /**
  * Vetor de interrupções do ARM
@@ -21,7 +20,7 @@ panic:
 
 reset_addr: .word reset
 swi_addr:   .word trata_swi
-irq_addr:   .word trata_irq
+irq_addr:   .word handle_irq
 
 .data
 .set TEMPO, 49999999    // valor de recarga para 1s em 50 MHz
@@ -48,7 +47,7 @@ reset:
    @ msr cpsr, r0
    @ ldr sp, =stack_usr
 
-   bl init_timer1
+   bl init_timer
 
    // Zera segmento .bss:
    mov r0, #0
@@ -89,22 +88,22 @@ trata_swi:
    // outras funções do kernel vão aqui...
    movs pc, lr          // retorna
 
-trata_irq:
+handle_irq:
   /*
    * Salva registradores e verifica causa da interrupção.
    */
-  push {r0, r1, r2, lr}
+  push {r0-r3, lr}
   ldr r1, =INTPND
   ldr r0, [r1]  // r0 contém INTPND
   tst r0, #(1 << 11)
-  bne timer1_irq // tratamento para interrupção do timer1 -> mudança de contexto
-  bl reconhece_irq // ignora interrupções que não sejam do timer1
-  pop {r0, r1, r2, lr}
+  beq exit_handle_irq // interrupções não originadas pelo timer1 não causam mudança de contexto
+  bl update_executed_thread
+  cmp r0, #1
+  bne thread_switch_irq
+exit_handle_irq:
+  bl recognize_all_interrupts // ignora interrupções que não sejam do timer1
+  pop {r0-r3, lr}
   subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
-timer1_irq:
-   bl disable_timer1_int
-   pop {r0, r1, r2, lr}
-   b thread_switch_irq
 
 reconhece_irq:
   /*
@@ -145,6 +144,7 @@ thread_switch_swi:
 
 /* Troca de contextos com escalonamento preemptivo */
 thread_switch_irq:
+   pop {r0-r3, lr}
    push {r0}
    ldr r0, =current_tcb
    ldr r0, [r0]
@@ -180,11 +180,9 @@ context_change:
    ldr r0, [r0]
 
    // reconhece todas interrupções, caso haja
-   push {r1, r2, lr}
-   bl reconhece_irq
-   // habilita timer1
-   bl enable_timer1_int
-   pop {r1, r2, lr}
+   push {r0-r3, lr}
+   bl recognize_all_interrupts
+   pop {r0-r3, lr}
 
    // retorna para o thread, mudando o modo 
    movs pc, lr

@@ -1,14 +1,14 @@
 #include "timer.h"
 
 void init_timer(void) {
-    bit_clr(INTMOD, 10);     // configura timer0 como IRQ
-    bit_clr(INTMSK, 10);     // habilita interrupção do timer 0
+    bit_clr(INTMOD, 11);     // configura timer0 como IRQ
+    bit_clr(INTMSK, 11);     // habilita interrupção do timer 0
     bit_clr(INTMSK, 21);     // habilita interrupções globais 
 
-    TDATA0 = TIME_LIMIT;          // valor para 0.1s com clock de 50 MHz
-    TCNT0 = TDATA0;
+    TDATA1 = TIME_LIMIT;          // valor para 0.1s com clock de 50 MHz
+    TCNT0 = TDATA1;
 
-    TMOD = TMOD & (~0b111);  // desativa o timer 0
+    TMOD = (TMOD & (~0b111 << 3) | (0b001 << 3));  // ativa o timer 0
 }
 
 void enable_timer(void) {
