@@ -1,64 +1,65 @@
 #include "queue.h"
 
-// Function to check if the queue is empty
-int isEmpty(Queue* queue) {
-    return (queue->front == -1 && queue->rear == -1);
+void _dequeue(queue_t* queue, node_t* node) {
+    node_t* previous_node = node->previous_node;
+    node_t* next_node = node->next_node;
+
+    // No elements in list
+    if (!(queue->head)) return;
+
+    // Single element in the list
+    if (next_node == node) queue->head = NULL;
+
+    // Only two elements in the list
+    else if (next_node == previous_node) {
+        next_node->next_node = NULL;
+        next_node->previous_node = NULL;
+        queue->head = next_node;
+    }
+
+    // Arbitrary number of elements in the list
+    else {
+        previous_node->next_node = next_node;
+        next_node->previous_node = previous_node;
+        if (queue->head == node) queue->head = next_node;
+    }
 }
 
-// Function to check if the queue is full
-int isFull(Queue* queue) {
-    return ((queue->rear + 1) % MAX_QUEUE_SIZE == queue->front);
+
+tcb_t* dequeue_by_tid(queue_t* queue, int tid) {
+    node_t* queue_head = queue->head;
+    if (!(queue_head)) return 0;
+
+    node_t* tail_node = queue_head->previous_node;
+    node_t* current_node = current_node->next_node;
+
+    while (current_node->tcb->tid != tid) {
+        if (current_node == tail_node) return;
+        current_node = current_node->next_node;
+    }
+
+    _dequeue(queue, current_node);
+    return current_node;
 }
 
-// Function to add an element to the queue
-int enqueue(Queue* queue, int item) {
-    if (isFull(queue)) {
-        return 0;
+
+void enqueue(queue_t* queue, tcb_t* new_tcb) {
+    node_t *new_node = (node_t*)malloc(sizeof(node_t));
+    new_node->tcb = new_tcb;
+
+    if (queue->head == NULL) {
+        queue->head = new_node;
+        new_node->next_node = new_node;
+        new_node->previous_node = new_node;
+        return;
     }
 
-    if (isEmpty(queue)) {
-        queue->front = 0;
-        queue->rear = 0;
-    } else {
-        queue->rear = (queue->rear + 1) % MAX_QUEUE_SIZE;
-    }
+    node_t* head_node = queue->head;
+    node_t* tail_node = head_node->previous_node;
 
-    queue->data[queue->rear] = item;
-    return 1;
-}
+    head_node->previous_node = new_node;
+    tail_node->previous_node = new_node;
 
-// Function to remove an element from the queue
-int dequeue(Queue* queue) {
-    if (isEmpty(queue)) {
-        return -1;
-    }
-
-    int item = queue->data[queue->front];
-
-    if (queue->front == queue->rear) {
-        queue->front = -1;
-        queue->rear = -1;
-    } else {
-        queue->front = (queue->front + 1) % MAX_QUEUE_SIZE;
-    }
-
-    return item;
-}
-
-// Function to get the front element of the queue without removing it
-int front(Queue* queue) {
-    if (isEmpty(queue)) {
-        return -1;
-    }
-
-    return queue->data[queue->front];
-}
-
-// Function to get the rear element of the queue without removing it
-int rear(Queue* queue) {
-    if (isEmpty(queue)) {
-        return -1;
-    }
-
-    return queue->data[queue->rear];
+    new_node->next_node = head_node;
+    new_node->previous_node = tail_node;
 }
