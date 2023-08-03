@@ -1,7 +1,7 @@
 .include "evlt7t.inc"
 
 .data
-.set TEMPO, 25000000     // valor de recarga para 0.5s em 50 MHz
+.set TEMPO, 50000000     // valor de recarga para 0.5s em 50 MHz
 
 .text
 .global init_timer1
@@ -24,7 +24,7 @@ init_timer1:
     ldr r1, =TEMPO
     str r1, [r2]
 
-    // desligar o timer 1
+    // habilita o timer 1
     ldr r2, =TMOD
     ldr r1, [r2]
     bic r1, r1, #(0b111 << 3)    // reinicia modo do timer 1

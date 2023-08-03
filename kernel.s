@@ -20,7 +20,7 @@ panic:
 
 reset_addr: .word reset
 swi_addr:   .word trata_swi
-irq_addr:   .word trata_irq
+irq_addr:   .word handle_irq
 
 .data
 .set TEMPO, 49999999    // valor de recarga para 1s em 50 MHz
@@ -88,21 +88,22 @@ trata_swi:
    // outras funções do kernel vão aqui...
    movs pc, lr          // retorna
 
-trata_irq:
+handle_irq:
   /*
    * Salva registradores e verifica causa da interrupção.
    */
-  push {r0, r1, r2, lr}
+  push {r0-r3, lr}
   ldr r1, =INTPND
   ldr r0, [r1]  // r0 contém INTPND
   tst r0, #(1 << 11)
-  bne timer1_irq // tratamento para interrupção do timer1 -> mudança de contexto
+  beq exit_handle_irq // interrupções não originadas pelo timer1 não causam mudança de contexto
+  bl update_executed_thread
+  cmp r0, #1
+  bne thread_switch_irq
+exit_handle_irq:
   bl reconhece_irq // ignora interrupções que não sejam do timer1
-  pop {r0, r1, r2, lr}
+  pop {r0-r3, lr}
   subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
-timer1_irq:
-   pop {r0, r1, r2, lr}
-   b thread_switch_irq
 
 reconhece_irq:
   /*
@@ -139,10 +140,11 @@ thread_switch_swi:
    str r1, [r0]
 
    // escala o próximo processo 
-   bl schedule_mfqs
+   bl scheduler_mfqs
 
 /* Troca de contextos com escalonamento preemptivo */
 thread_switch_irq:
+   pop {r0-r3, lr}
    push {r0}
    ldr r0, =current_tcb
    ldr r0, [r0]
@@ -161,7 +163,7 @@ thread_switch_irq:
    str r1, [r0]
 
    // escala o próximo processo 
-   bl schedule_mfqs
+   bl scheduler_mfqs
 
 /* Retorna no contexto de outro thread */
 context_change:

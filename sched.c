@@ -70,32 +70,30 @@ MultilevelQueue multi_queue = {{&queue0, &queue1, &queue2}, {2, 5, 10}};
 
 void ageAllThreads() {}
 
-int thread_scheduler() {
-    return highest_nonempty_queue_head(&multi_queue);
-}
-
-void update_executed_thread(volatile tcb* cur_thread) {
-   int tid = cur_thread->tid;
-   int priority = cur_thread->priority;
-   int remaining_quanta = --cur_thread->exc_slots;
+int update_executed_thread(void) {
+   int tid = current_tcb->tid;
+   int priority = current_tcb->priority;
+   int remaining_quanta = --current_tcb->exc_slots;
 
     if (remaining_quanta == 0) {
         int new_priority = priority;
 
         if (priority < NUM_OF_QUEUES - 1) {
             new_priority = priority + 1;
-            cur_thread->priority = new_priority;
+            current_tcb->priority = new_priority;
         }
 
-        cur_thread->exc_slots = queue_max_quanta(new_priority, &multi_queue);
+        current_tcb->exc_slots = queue_max_quanta(new_priority, &multi_queue);
         dequeue_by_priority(priority, &multi_queue);
         enqueue_by_priority(tid, new_priority, &multi_queue);
+
+        return 1;
     }
+    return 0;
 }
 
-void schedule_mfqs(void) {
-   update_executed_thread(current_tcb);
-   int next_tid = thread_scheduler();
+void scheduler_mfqs(void) {
+   int next_tid = highest_nonempty_queue_head(&multi_queue);
    tid = next_tid;
    current_tcb = &tcb_array[next_tid];
 }
