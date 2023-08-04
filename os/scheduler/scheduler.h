@@ -11,4 +11,5 @@ int main(void);
 int main2(void);
 int main3(void);
 
-int mfqs_scheduler();
+int mfqs_update_threads();
+void mfqs_scheduler();

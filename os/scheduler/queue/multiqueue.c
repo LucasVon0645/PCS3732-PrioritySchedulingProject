@@ -24,13 +24,6 @@ void downgrade_thread(tcb_t* thread, multiqueue_t* multi_queue) {
     enqueue(next_queue, thread);
 };
 
-tcb_t* highest_nonempty_queue_head(multiqueue_t* multi_queue) {
-    for(int i = 0; i < NUM_OF_QUEUES; i++) 
-        if (multi_queue->queues[i]->head)
-            return multi_queue->queues[i]->head->tcb;
-    return NULL;
-}
-
 void age_all_threads(multiqueue_t* multi_queue) {
     for(int i = 1; i < NUM_OF_QUEUES; i++) {
         queue_t* current_queue = multi_queue->queues[i];
@@ -50,4 +43,11 @@ void age_all_threads(multiqueue_t* multi_queue) {
             }
         }
     }
+}
+
+void update_next_thread(multiqueue_t* multi_queue) {
+    for(int i = 0; i < NUM_OF_QUEUES; i++) 
+        if (multi_queue->queues[i]->head)
+            multi_queue->next_thread = multi_queue->queues[i]->head->tcb;
+    multi_queue->next_thread = NULL;
 }
