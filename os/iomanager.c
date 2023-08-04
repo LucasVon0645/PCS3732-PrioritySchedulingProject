@@ -13,9 +13,10 @@ void setupDisplay() {
 }
 
 void updateLed(led_t ledColor) {
+    int offset = ledColor + 4;
     uint32_t mask = 0b1111 << 4;
     IOPDATA &= ~(mask);
-    mask = 0b1 << ledColor;
+    mask = 0b1 << offset;
     IOPDATA |= mask;
 }
 

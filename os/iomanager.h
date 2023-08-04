@@ -21,7 +21,7 @@ static const uint32_t segments[16] = {
     0b1110001  // F
 };
 
-enum led {green1 = 4, yellow = 5, orange = 6, green2 = 7};
+enum led {green1 = 0, yellow = 1, orange = 2, green2 = 3};
 typedef enum led led_t;
 
 void setupLeds();

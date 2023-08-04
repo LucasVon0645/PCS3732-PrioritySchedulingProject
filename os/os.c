@@ -20,3 +20,10 @@ int __attribute__((naked)) getpid(void) {
                 "swi #0     \n\t"
                 "pop {pc}");
 }
+
+int __attribute__((naked)) get_priority(void) {
+      asm volatile("push {lr}  \n\t"
+                "mov r0, #3 \n\t"
+                "swi #0     \n\t"
+                "pop {pc}");
+}

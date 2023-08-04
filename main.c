@@ -1,25 +1,29 @@
 #include "os/iomanager.h"
+#include "os/os.h"
 
 int main(void) {
-   int i;
+   int pid = getpid();
    for(;;) {
-      updateLed(green1);
-      updateDisplay(0);
+      int priority = get_priority();
+      updateLed(priority);
+      updateDisplay(pid);
    }
 }
 
 int main2(void) {
-   int i;
+   int pid = getpid();
    for(;;) {
-      updateLed(orange);
-      updateDisplay(1);
+      int priority = get_priority();
+      updateLed(priority);
+      updateDisplay(pid);
    }
 }
 
 int main3(void) {
-   int i;
+   int pid = getpid();
    for(;;) {
-      updateLed(yellow);
-      updateDisplay(2);
+      int priority = get_priority();
+      updateLed(priority);
+      updateDisplay(pid);
    }
 }

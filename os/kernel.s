@@ -19,11 +19,8 @@ panic:
    b panic
 
 reset_addr: .word reset
-swi_addr:   .word trata_swi
+swi_addr:   .word handle_swi
 irq_addr:   .word handle_irq
-
-.data
-.set TEMPO, 49999999    // valor de recarga para 1s em 50 MHz
 
 .text
 /*
@@ -77,13 +74,22 @@ start:
  * Ponto de entrada do kernel.
  * Identifica a função solicitada e trata.
  */
-trata_swi:
+ handle_swi:
    // desativar iterrupção
+   mrs r1, cpsr
+   orr r1, r1, #(1 << 7) // configura bit IRQ para '1' (desabilitado)
+   msr cpsr, r1
+
    cmp r0, #1          // função yield: troca de thread
    beq thread_switch_swi
 
    cmp r0, #2          // função getpid: retorna a identificação do thread atual
    beq getid
+
+   cmp r0, #3
+   push {r1-r3, lr}
+   bleq get_current_priority // função get_current_priority: retorno prioridade do thread atual
+   pop {r1-r3, lr}
 
    // outras funções do kernel vão aqui...
    movs pc, lr          // retorna
@@ -104,16 +110,6 @@ exit_handle_irq:
   bl recognize_all_interrupts // ignora interrupções que não sejam do timer1
   pop {r0-r3, lr}
   subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
-
-reconhece_irq:
-  /*
-   * Fim do tratamento.
-   * Reconhece todas as interrupções.
-   */
-  ldr r1, =INTPND
-  ldr r0, [r1]
-  str r0, [r1]
-  bx lr
 
 /* Retorna a identificação do thread atual. */
 getid:

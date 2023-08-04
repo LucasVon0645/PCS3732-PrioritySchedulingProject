@@ -1,6 +1,23 @@
 #include <stdint.h>
-#include "scheduler.h"
+#include "queue/multiqueue.h"
+//#include "thread_table/thread_table.h"
 
+// Definidos pelo linker
+extern uint8_t stack_usr1[];
+extern uint8_t stack_usr2[];
+extern uint8_t stack_usr3[];
+
+// Pontos de entrada dos threads
+int main(void);
+int main2(void);
+int main3(void);
+
+typedef struct {
+    uint32_t regs[17];   // contexto (17 registradores)
+    uint32_t tid;        // identificador da thread
+    uint32_t priority;   // prioridade atual da thread
+    uint32_t exc_slots;  // numero de execucoes restantes
+} tcb;
 
 // Mock de threads
 tcb tcb_array[3] = 
@@ -51,30 +68,35 @@ Queue queue2 = {{0}, -1, -1};
 MultilevelQueue multi_queue = {{&queue0, &queue1, &queue2}, {2, 5, 10}};
 
 
-void ageAllThreads() {}
-
-void update_executed_thread(volatile tcb* cur_thread) {
-   int tid = cur_thread->tid;
-   int priority = cur_thread->priority;
-   int remaining_quanta = --cur_thread->exc_slots;
+int update_executed_thread(void) {
+   int tid = current_tcb->tid;
+   int priority = current_tcb->priority;
+   int remaining_quanta = --current_tcb->exc_slots;
 
     if (remaining_quanta == 0) {
         int new_priority = priority;
 
         if (priority < NUM_OF_QUEUES - 1) {
             new_priority = priority + 1;
-            cur_thread->priority = new_priority;
+            current_tcb->priority = new_priority;
         }
 
-        cur_thread->exc_slots = queue_max_quanta(new_priority, &multi_queue);
+        current_tcb->exc_slots = queue_max_quanta(new_priority, &multi_queue);
         dequeue_by_priority(priority, &multi_queue);
         enqueue_by_priority(tid, new_priority, &multi_queue);
+
+        return 1;
     }
+    return 0;
 }
 
 void scheduler_mfqs(void) {
-   update_executed_thread(current_tcb);
    int next_tid = highest_nonempty_queue_head(&multi_queue);
    tid = next_tid;
    current_tcb = &tcb_array[next_tid];
+}
+
+int get_current_priority() {
+    int p = current_tcb->priority;
+    return p;
 }
