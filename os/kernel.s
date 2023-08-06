@@ -38,14 +38,6 @@ reset:
    msr cpsr, r0
    ldr sp, =stack_svr
 
-   // Configura modo USR:
-   @ mov r0, #0b10000
-   @ bic r0, r0, #(1 << 7) // configura bit IRQ para '0' (habilitado)
-   @ msr cpsr, r0
-   @ ldr sp, =stack_usr
-
-   bl init_timer
-
    // Zera segmento .bss:
    mov r0, #0
    ldr r1, =inicio_bss
@@ -60,14 +52,10 @@ loop_zera:
  * Ponto de entrada: executa o primeiro thread (tid = 0).
  */
 start:
-   mov r0, #0              // tid = 0
-   ldr r1, =tid
-   str r0, [r1]
-   ldr r0, =tcb_array            // current_tcb = &tcb[0]
-   ldr r1, =current_tcb
-   str r0, [r1]
+   bl boot
    bl setupLeds
    bl setupDisplay
+   bl init_timer
    b context_change
 
 /*
@@ -103,7 +91,7 @@ handle_irq:
   ldr r0, [r1]  // r0 contém INTPND
   tst r0, #(1 << 11)
   beq exit_handle_irq // interrupções não originadas pelo timer1 não causam mudança de contexto
-  bl update_executed_thread
+  bl mfqs_update_threads
   cmp r0, #1
   bne thread_switch_irq
 exit_handle_irq:
@@ -136,7 +124,7 @@ thread_switch_swi:
    str r1, [r0]
 
    // escala o próximo processo 
-   bl scheduler_mfqs
+   bl mfqs_scheduler
 
 /* Troca de contextos com escalonamento preemptivo */
 thread_switch_irq:
@@ -159,7 +147,7 @@ thread_switch_irq:
    str r1, [r0]
 
    // escala o próximo processo 
-   bl scheduler_mfqs
+   bl mfqs_scheduler
 
 /* Retorna no contexto de outro thread */
 context_change:

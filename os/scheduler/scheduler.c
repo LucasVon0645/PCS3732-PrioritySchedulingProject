@@ -1,99 +1,33 @@
 #include <stdint.h>
-#include "queue/multiqueue.h"
-//#include "thread_table/thread_table.h"
-
-// Definidos pelo linker
-extern uint8_t stack_usr1[];
-extern uint8_t stack_usr2[];
-extern uint8_t stack_usr3[];
-
-// Pontos de entrada dos threads
-int main(void);
-int main2(void);
-int main3(void);
-
-typedef struct {
-    uint32_t regs[17];   // contexto (17 registradores)
-    uint32_t tid;        // identificador da thread
-    uint32_t priority;   // prioridade atual da thread
-    uint32_t exc_slots;  // numero de execucoes restantes
-} tcb;
-
-// Mock de threads
-tcb tcb_array[3] = 
-{
-    {
-        {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // r0-r12
-            (uint32_t)stack_usr1,                              // sp
-            0,                                       // lr inicial
-            (uint32_t)main,                                    // pc = lr = ponto de entrada
-            0x10,                                    // valor do cpsr (modo usuário)
-        },
-        0,
-        1,
-        5
-    },
-    {
-        {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // r0-r12
-            (uint32_t)stack_usr2,                              // sp
-            0,                                       // lr inicial
-            (uint32_t)main2,                                   // pc = lr = ponto de entrada
-            0x10,                                    // valor do cpsr (modo usuário)
-        },
-        1,
-        0,
-        2
-    },
-    {
-        {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // r0-r12
-            (uint32_t)stack_usr3,                              // sp
-            0,                                       // lr inicial
-            (uint32_t)main3,                                   // pc = lr = ponto de entrada
-            0x10,                                    // valor do cpsr (modo usuário)
-        },
-        2,
-        0,
-        2
-    }
-};
-
-volatile int tid = 0;
-volatile tcb *current_tcb = &tcb_array[0];
-Queue queue0 = {{1, 2, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 1};
-Queue queue1 = {{0}, 0, 0};
-Queue queue2 = {{0}, -1, -1};
-MultilevelQueue multi_queue = {{&queue0, &queue1, &queue2}, {2, 5, 10}};
+#include "scheduler.h"
 
 
-int update_executed_thread(void) {
-   int tid = current_tcb->tid;
-   int priority = current_tcb->priority;
-   int remaining_quanta = --current_tcb->exc_slots;
+int mfqs_update_threads() {
+    // Atualiza thread que acabou de ser executado
+    if (!(--current_tcb->exc_slots))
+        downgrade_thread(current_tcb, &multi_queue);
 
-    if (remaining_quanta == 0) {
-        int new_priority = priority;
+    // Faz o aging de todas as threads, exceto a que executou agora
+    age_all_threads(&multi_queue);
+    current_tcb->age = 0;
 
-        if (priority < NUM_OF_QUEUES - 1) {
-            new_priority = priority + 1;
-            current_tcb->priority = new_priority;
-        }
+    // Atualiza a proxima thread a ser executada
+    update_next_thread(&multi_queue);
 
-        current_tcb->exc_slots = queue_max_quanta(new_priority, &multi_queue);
-        dequeue_by_priority(priority, &multi_queue);
-        enqueue_by_priority(tid, new_priority, &multi_queue);
-
-        return 1;
-    }
-    return 0;
+    // Checa se precisa salvar contexto
+    return (current_tcb == multi_queue.next_thread) ? 0 : 1;
 }
 
-void scheduler_mfqs(void) {
-   int next_tid = highest_nonempty_queue_head(&multi_queue);
-   tid = next_tid;
-   current_tcb = &tcb_array[next_tid];
+void mfqs_scheduler() {
+    // Pega a nova thread a ser executada
+    tcb_t *next_tcb = multi_queue.next_thread;
+
+    // Checa se precisa atualizar a current_tcb global
+    if (current_tcb != next_tcb) {
+        next_tcb->age = 0;
+        current_tcb = next_tcb;
+        tid = current_tcb->tid;
+    }
 }
 
 int get_current_priority() {

@@ -1,4 +1,4 @@
-FONTES = os/kernel.s os/timer.s os/interrupts/timer.c os/os.c os/interrupts/interrupts.c os/scheduler/scheduler.c main.c os/iomanager.c os/scheduler/queue/multiqueue.c os/scheduler/queue/queue.c
+FONTES = os/stubs.c os/kernel.s os/boot/boot.c os/interrupts/timer.c os/os.c os/interrupts/interrupts.c os/scheduler/scheduler.c main.c os/iomanager.c os/queue/multiqueue.c os/queue/queue.c
 
 #
 # Arquivos de saída 
@@ -16,10 +16,16 @@ OBJ = $(FONTES:.s=.o)
 OBJETOS = $(OBJ:.c=.o)
 
 #
+# OpÃ§Ãµes do linker
+#
+LDOPTS = -L/usr/lib/gcc/arm-none-eabi/10.3.1/ -L/usr/lib/arm-none-eabi/lib
+LDOPTS += -lc -lgcc
+
+#
 # Gerar executável
 #
 ${EXEC}: ${OBJETOS}
-	${LD} -T ${LDSCRIPT} -M=${MAP} -o $@ ${OBJETOS}
+		${LD} -T ${LDSCRIPT} -M=${MAP} ${OBJETOS} ${LDOPTS} -o $@
 
 #
 # Compilar arquivos em C
