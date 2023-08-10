@@ -59,7 +59,23 @@ ocd:
 #
 gdb: ${EXEC}
 	gdb-multiarch -ex "set architecture arm" \
-		           -ex "target extended-remote :3333" \
+		           -ex "target extended-remote :1234" \
 					  -ex "load" \
+					  -ex "b reset"\
 					  -ex "b start"\
+					  -ex "j *0"\
 					  ${EXEC}
+
+#
+# Iniciar qemu
+#
+qemu: ${EXEC}
+	@if lsof -Pi :1234 >/dev/null ; then\
+		echo "qemu já está executando"; \
+	else qemu-system-arm -s -M virt & \
+	fi
+
+kill:
+	pkill ocd
+	pkill qemu
+	pkill gdb

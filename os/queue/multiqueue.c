@@ -46,8 +46,11 @@ void age_all_threads(multiqueue_t* multi_queue) {
 }
 
 void update_next_thread(multiqueue_t* multi_queue) {
-    for(int i = 0; i < NUM_OF_QUEUES; i++) 
-        if (multi_queue->queues[i]->head)
+    for(int i = 0; i < NUM_OF_QUEUES; i++) {
+        if (multi_queue->queues[i]->head) {
             multi_queue->next_thread = multi_queue->queues[i]->head->tcb;
+            return;
+        }
+    }
     multi_queue->next_thread = NULL;
 }

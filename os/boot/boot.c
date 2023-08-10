@@ -9,9 +9,9 @@ void boot() {
             (uint32_t)main,                          // pc = lr = ponto de entrada
             0x10,                                    // valor do cpsr (modo usuário)
         },
-        0,
-        1,
-        5
+        0, // identificador da thread (tid)
+        1, // prioridade atual da thread
+        5 // numero de execucoes restantes 
     };
 
     tcb_t *main_tcb = (tcb_t*)malloc(sizeof(tcb_t));
