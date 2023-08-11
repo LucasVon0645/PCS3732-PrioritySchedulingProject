@@ -12,8 +12,8 @@ void _dequeue(queue_t* queue, node_t* node) {
 
     // Only two elements in the list
     else if (next_node == previous_node) {
-        next_node->next_node = NULL;
-        next_node->previous_node = NULL;
+        next_node->next_node = next_node;
+        next_node->previous_node = next_node;
         queue->head = next_node;
     }
 
@@ -26,15 +26,15 @@ void _dequeue(queue_t* queue, node_t* node) {
 }
 
 
-tcb_t* dequeue_by_tid(queue_t* queue, int tid) {
+tcb_t* dequeue_by_tid(queue_t* queue, uint32_t tid) {
     node_t* queue_head = queue->head;
-    if (!(queue_head)) return 0;
+    if (!(queue_head)) return NULL;
 
     node_t* tail_node = queue_head->previous_node;
-    node_t* current_node = current_node->next_node;
+    node_t* current_node = queue_head;
 
     while (current_node->tcb->tid != tid) {
-        if (current_node == tail_node) return;
+        if (current_node == tail_node) return NULL;
         current_node = current_node->next_node;
     }
 
@@ -58,7 +58,7 @@ void enqueue(queue_t* queue, tcb_t* new_tcb) {
     node_t* tail_node = head_node->previous_node;
 
     head_node->previous_node = new_node;
-    tail_node->previous_node = new_node;
+    tail_node->next_node = new_node;
 
     new_node->next_node = head_node;
     new_node->previous_node = tail_node;

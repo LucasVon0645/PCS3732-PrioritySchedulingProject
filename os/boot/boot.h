@@ -3,14 +3,9 @@
 
 extern multiqueue_t multi_queue;
 
-// Definidos pelo linker
-extern uint8_t stack_usr1[];
-extern uint8_t stack_usr2[];
-extern uint8_t stack_usr3[];
-
 // Pontos de entrada dos threads
 int main(void);
-int main2(void);
-int main3(void);
 
 void mfqs_scheduler();
+
+tcb_t* create_tcb(uint32_t tid, uint32_t priority, uint32_t exc_slots, uint32_t age, uint32_t entry_point);

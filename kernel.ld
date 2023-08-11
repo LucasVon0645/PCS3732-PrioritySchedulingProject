@@ -9,7 +9,8 @@ SECTIONS {                  /* arquivo kernel.ld para QEMU arm virt */
    /*
     * Segmentos text e data
     */
-   . = 0x8000; 
+   /* . = 0x40000000; */
+  . = 0x8000;
   .text : { *(.text) }
   .data : { *(.data) }
 
@@ -20,23 +21,18 @@ SECTIONS {                  /* arquivo kernel.ld para QEMU arm virt */
   .bss : { *(.bss) }
   . = ALIGN(4); 
   fim_bss = .;
+
+  /* 
+  * Segmento heap
+  */
   heap_start = .;
+  . = . + 4096;
+  . = ALIGN(8);
 
   /*
    * Reserva espaço para as pilhas
-   * Dois threads e o sistema.
+   * do sistema.
    */
-  . = . + 4096;
-  . = ALIGN(8);
-  stack_usr1 = .;
-
-  . = . + 4096;
-  . = ALIGN(8);
-  stack_usr2 = .;
-
-  . = . + 4096;
-  . = ALIGN(8);
-  stack_usr3 = .;
 
   . = . + 4096;
   . = ALIGN(8);

@@ -1,4 +1,4 @@
-FONTES = os/stubs.c os/kernel.s os/boot/boot.c os/interrupts/timer.c os/os.c os/interrupts/interrupts.c os/scheduler/scheduler.c main.c os/iomanager.c os/queue/multiqueue.c os/queue/queue.c
+FONTES = os/kernel.s os/stubs.c os/boot/boot.c os/interrupts/timer.c os/os.c os/interrupts/interrupts.c os/scheduler/scheduler.c main.c os/iomanager.c os/queue/multiqueue.c os/queue/queue.c
 
 #
 # Arquivos de saída 
@@ -43,7 +43,7 @@ ${EXEC}: ${OBJETOS}
 # Limpar tudo
 #
 clean:
-	rm -f *.o ${EXEC} ${MAP}
+	rm -rf *.o ${EXEC} ${MAP}
 
 #
 # Iniciar openocd
@@ -59,11 +59,8 @@ ocd:
 #
 gdb: ${EXEC}
 	gdb-multiarch -ex "set architecture arm" \
-		           -ex "target extended-remote :1234" \
+		           -ex "target extended-remote :3333" \
 					  -ex "load" \
-					  -ex "b reset"\
-					  -ex "b start"\
-					  -ex "j *0"\
 					  ${EXEC}
 
 #

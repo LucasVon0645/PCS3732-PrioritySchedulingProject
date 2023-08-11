@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include "scheduler.h"
 
+multiqueue_t multi_queue;
+tcb_t *current_tcb;
+volatile uint32_t tid;
 
 int mfqs_update_threads() {
     // Atualiza thread que acabou de ser executado

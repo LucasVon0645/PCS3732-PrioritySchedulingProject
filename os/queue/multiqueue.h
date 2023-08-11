@@ -1,3 +1,4 @@
+#pragma once
 #include "queue.h"
 
 #define NUM_OF_QUEUES 3

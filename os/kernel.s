@@ -64,9 +64,11 @@ start:
  */
  handle_swi:
    // desativar iterrupção
+   push {r1}
    mrs r1, cpsr
    orr r1, r1, #(1 << 7) // configura bit IRQ para '1' (desabilitado)
    msr cpsr, r1
+   pop {r1}
 
    cmp r0, #1          // função yield: troca de thread
    beq thread_switch_swi
@@ -93,7 +95,7 @@ handle_irq:
   beq exit_handle_irq // interrupções não originadas pelo timer1 não causam mudança de contexto
   bl mfqs_update_threads
   cmp r0, #1
-  bne thread_switch_irq
+  beq thread_switch_irq
 exit_handle_irq:
   bl recognize_all_interrupts // ignora interrupções que não sejam do timer1
   pop {r0-r3, lr}
