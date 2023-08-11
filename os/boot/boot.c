@@ -21,7 +21,7 @@ void boot() {
 
     queue_t *queue2 = (queue_t*)malloc(sizeof(queue_t));
     queue2->quanta_limit = 10;
-    queue2->age_limit = 10000;
+    queue2->age_limit = 20;
     queue2->head = NULL;
     
 
