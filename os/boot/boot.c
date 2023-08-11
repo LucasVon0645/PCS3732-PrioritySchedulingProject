@@ -51,6 +51,7 @@ tcb_t* create_tcb(uint32_t tid, uint32_t priority, uint32_t exc_slots, uint32_t 
     }
 
     new_tcb->regs[13] = (uint32_t)(stack + 4096);
+    new_tcb->regs[14] = (uint32_t)halt;
     new_tcb->regs[15] = entry_point;
     
     new_tcb->tid = tid;
