@@ -73,3 +73,8 @@ void update_next_thread(multiqueue_t* multi_queue) {
     }
     multi_queue->next_thread = NULL;
 }
+
+void remove_thread_from_multiqueue(tcb_t* thread, multiqueue_t* multi_queue) {
+    queue_t* current_queue = multi_queue->queues[thread->priority];
+    dequeue_by_tid(current_queue, thread->tid);
+}

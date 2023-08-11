@@ -12,18 +12,18 @@ int main(void) {
 
 int main2(void) {
    int pid = getpid();
-   for(;;) {
-      int priority = get_priority();
-      updateLed(priority);
-      updateDisplay(pid);
-   }
-}
+   int time_to_halt = 10;
+   int cpu_time = 0;
 
-int main3(void) {
-   int pid = getpid();
    for(;;) {
       int priority = get_priority();
       updateLed(priority);
       updateDisplay(pid);
+
+      cpu_time = get_cpu_time();
+
+      if (cpu_time > time_to_halt) {
+         halt();
+      }
    }
 }

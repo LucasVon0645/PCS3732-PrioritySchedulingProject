@@ -23,7 +23,19 @@ int __attribute__((naked)) getpid(void) {
 
 int __attribute__((naked)) get_priority(void) {
       asm volatile("push {lr}  \n\t"
-                "mov r0, #3 \n\t"
-                "swi #0     \n\t"
-                "pop {pc}");
+                   "mov r0, #3 \n\t"
+                   "swi #0     \n\t"
+                   "pop {pc}");
+}
+
+int __attribute__((naked)) get_cpu_time(void) {
+      asm volatile("push {lr}  \n\t"
+                   "mov r0, #4 \n\t"
+                   "swi #0     \n\t"
+                   "pop {pc}");
+}
+
+void __attribute__((naked)) halt(void) {
+      asm volatile("mov r0, #5 \n\t"
+                   "swi #0     \n\t");
 }

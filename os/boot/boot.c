@@ -57,6 +57,7 @@ tcb_t* create_tcb(uint32_t tid, uint32_t priority, uint32_t exc_slots, uint32_t 
     new_tcb->priority = priority;
     new_tcb->exc_slots = exc_slots;
     new_tcb->age = age;
+    new_tcb->cpu_time = 0;
     
     return new_tcb;
 }

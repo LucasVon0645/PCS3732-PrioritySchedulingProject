@@ -75,11 +75,17 @@ start:
    beq thread_switch_swi
 
    cmp r0, #2          // função getpid: retorna a identificação do thread atual
-   beq getid
+   beq handle_getid
 
-   cmp r0, #3
+   cmp r0, #5
+   beq handle_halt
+
    push {r1-r3, lr}
-   bleq get_current_priority // função get_current_priority: retorno prioridade do thread atual
+   cmp r0, #3
+   bleq get_current_priority // função get_current_priority: retorna prioridade do thread atual
+
+   cmp r0, #4
+   bleq get_current_cpu_time // função get_cpu_time: retorna tempo de cpu usado até o momento pela thread atual
    pop {r1-r3, lr}
 
    // outras funções do kernel vão aqui...
@@ -115,10 +121,17 @@ exit_handle_irq:
   subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
 
 /* Retorna a identificação do thread atual. */
-getid:
+handle_getid:
    ldr r0, =tid
    ldr r0, [r0]
    movs pc, lr
+
+/* Finaliza a thread atual e realiza troca de contexto para a próxima thread */
+handle_halt:
+   bl finish_current_thread // atualização do multi_queue.next_thread e o aging também são feitos em finish_current_thread
+   bl mfqs_scheduler // current_tcb é atualizado aqui
+   b context_change
+  
 
 /* Salva o contexto do usuário no tcb, com escalonamento cooperativo */
 thread_switch_swi:
