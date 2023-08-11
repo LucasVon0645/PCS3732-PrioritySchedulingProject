@@ -46,7 +46,8 @@ int get_current_priority() {
 }
 
 int get_current_cpu_time() {
-    int cpu_time = current_tcb->priority;
+    int cpu_time = current_tcb->cpu_time;
+    return cpu_time;
 }
 
 void finish_current_thread() {

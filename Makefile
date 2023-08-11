@@ -43,7 +43,7 @@ ${EXEC}: ${OBJETOS}
 # Limpar tudo
 #
 clean:
-	rm -rf *.o ${EXEC} ${MAP}
+	rm -rf *.o ${EXEC} ${MAP} ${OBJETOS} 
 
 #
 # Iniciar openocd

@@ -1,11 +1,11 @@
 #include "boot.h"
 
 void boot() {
-    tcb_t *main_tcb = create_tcb(0, 0, 2, 0, (uint32_t)main);
+    tcb_t *main_tcb = create_tcb(0, 0, 2, 0, (uint32_t)main2);
 
-    tcb_t* tcb1 = create_tcb(1, 0, 2, 0, (uint32_t)main);
-    tcb_t* tcb2 = create_tcb(2, 1, 5, 0, (uint32_t)main);
-    tcb_t* tcb3 = create_tcb(3, 1, 5, 0, (uint32_t)main);
+    tcb_t* tcb1 = create_tcb(1, 0, 2, 0, (uint32_t)main2);
+    tcb_t* tcb2 = create_tcb(2, 1, 5, 0, (uint32_t)main2);
+    tcb_t* tcb3 = create_tcb(3, 1, 5, 0, (uint32_t)main2);
     tcb_t* tcb4 = create_tcb(4, 2, 10, 0, (uint32_t)main);
     tcb_t* tcb5 = create_tcb(5, 2, 10, 0, (uint32_t)main);
 
@@ -21,7 +21,7 @@ void boot() {
 
     queue_t *queue2 = (queue_t*)malloc(sizeof(queue_t));
     queue2->quanta_limit = 10;
-    queue2->age_limit = 10000;
+    queue2->age_limit = 30;
     queue2->head = NULL;
     
 

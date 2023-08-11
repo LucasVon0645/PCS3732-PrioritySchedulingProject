@@ -5,6 +5,7 @@ extern multiqueue_t multi_queue;
 
 // Pontos de entrada dos threads
 int main(void);
+int main2(void);
 
 void mfqs_scheduler();
 
