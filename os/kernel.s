@@ -55,6 +55,7 @@ start:
    bl boot
    bl setupLeds
    bl setupDisplay
+   bl setup_user_button_int
    bl init_timer
    b context_change
 
@@ -84,6 +85,7 @@ start:
    // outras funções do kernel vão aqui...
    movs pc, lr          // retorna
 
+/* Tratamento das interrupções IRQ */
 handle_irq:
   /*
    * Salva registradores e verifica causa da interrupção.
@@ -91,13 +93,24 @@ handle_irq:
   push {r0-r3, lr}
   ldr r1, =INTPND
   ldr r0, [r1]  // r0 contém INTPND
-  tst r0, #(1 << 11)
-  beq exit_handle_irq // interrupções não originadas pelo timer1 não causam mudança de contexto
-  bl mfqs_update_threads
-  cmp r0, #1
-  beq thread_switch_irq
-exit_handle_irq:
-  bl recognize_all_interrupts // ignora interrupções que não sejam do timer1
+test_timer_interrupt:
+  tst r0, #(1 << 11) // r0 possui valor apontado por INTPND
+  beq test_button_interrupt // se a interrupção não é do timere1, verifica se é do user interrupt
+  mov r0, #0 // passa yield = 0 como parâmetro de mfqs_update_threads
+  b mfqs_update_threads_call
+
+test_button_interrupt:
+  tst r0, #1 // r0 possui valor apontado por INTPND
+  beq exit_handle_irq // interrupções que não são do timer1 ou do user interrupt são ignoradas
+  mov r0, #1 // passa yield = 1 como parâmetro de mfqs_update_threads e executa mfqs_update_threads_call abaixo
+
+mfqs_update_threads_call:
+  bl mfqs_update_threads // atualiza a thread com parâmetro r0 passado anteriormente
+  cmp r0, #1 // verifica se o retorno de mfqs_update_threads é 1 (troca de contexto necessária nesse caso)
+  beq thread_switch_irq // continua em exit_handle_irq caso contrário
+
+exit_handle_irq: 
+  bl recognize_all_interrupts
   pop {r0-r3, lr}
   subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
 

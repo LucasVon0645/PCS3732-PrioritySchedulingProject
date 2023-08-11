@@ -5,10 +5,14 @@ multiqueue_t multi_queue;
 tcb_t *current_tcb;
 volatile uint32_t tid;
 
-int mfqs_update_threads() {
+int mfqs_update_threads(int yield) {
+    if (yield) {
+        keep_thread_on_same_queue(current_tcb, &multi_queue);
+    }
     // Atualiza thread que acabou de ser executado
-    if (!(--current_tcb->exc_slots))
+    else if (!(--current_tcb->exc_slots)) {
         downgrade_thread(current_tcb, &multi_queue);
+    }
 
     // Faz o aging de todas as threads, exceto a que executou agora
     age_all_threads(&multi_queue);

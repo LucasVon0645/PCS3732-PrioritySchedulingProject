@@ -26,6 +26,15 @@ void downgrade_thread(tcb_t* thread, multiqueue_t* multi_queue) {
     enqueue(next_queue, thread);
 };
 
+void keep_thread_on_same_queue(tcb_t* thread, multiqueue_t* multi_queue) {
+    queue_t* current_queue = multi_queue->queues[thread->priority];
+    dequeue_by_tid(current_queue, thread->tid);
+
+    thread->age = 0;
+    thread->exc_slots = current_queue->quanta_limit;
+    enqueue(current_queue, thread);
+}
+
 void age_all_threads(multiqueue_t* multi_queue) {
     for(int i = 1; i < NUM_OF_QUEUES; i++) {
         queue_t* current_queue = multi_queue->queues[i];
