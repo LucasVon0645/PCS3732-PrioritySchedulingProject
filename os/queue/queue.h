@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdlib.h>
-#include <../types.h>
+#include "../types.h"
 
 #define MAX_QUEUE_SIZE 10
 

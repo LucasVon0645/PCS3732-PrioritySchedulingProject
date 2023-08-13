@@ -3,7 +3,7 @@
 #include "scheduler/scheduler.h"
 
 extern tcb_t *current_tcb;
-multiqueue_t multi_queue;
+extern multiqueue_t multi_queue;
 
 int _get_current_priority() {
     int p = current_tcb->priority;

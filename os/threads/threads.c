@@ -8,6 +8,22 @@ uint32_t get_next_tid(void) {
     return latest_tid++;
 }
 
+void* aligned_malloc(size_t required_bytes, size_t alignment) {
+    void* p1;
+    void** p2;
+    int offset = alignment - 1 + sizeof(void*);
+    if ((p1 = (void*)malloc(required_bytes + offset)) == NULL) {
+      return NULL;
+    }
+    p2 = (void**)(((size_t)(p1) + offset) & ~(alignment - 1));
+    p2[-1] = p1;
+    return p2;
+}
+
+void aligned_free(void *p) {
+    free(((void**)p)[-1]);
+}
+
 // Função para criar um elemento tcb_t
 tcb_t* create_tcb(
     uint32_t priority,
@@ -15,7 +31,7 @@ tcb_t* create_tcb(
     uint32_t entry_point,
     uint32_t exit_point
 ) {
-    tcb_t* new_tcb = (tcb_t*)align_alloc(8, sizeof(tcb_t));
+    tcb_t* new_tcb = (tcb_t*)aligned_malloc(sizeof(tcb_t), 8);
     
     // Inicializa os registradores
     for (int i = 0; i < 17; i++)
@@ -38,7 +54,7 @@ tcb_t* create_tcb(
 // Função para criar um novo elemento tcb_t a partir de uma copia
 tcb_t* copy_tcb(tcb_t* original_tcb) {
     // Aloca espaco para uma nova tcb
-    tcb_t* new_tcb = (tcb_t*)align_alloc(8, sizeof(tcb_t));
+    tcb_t* new_tcb = (tcb_t*)aligned_malloc(sizeof(tcb_t), 8);
 
     // Copia a tcb original
     *new_tcb = *original_tcb;
