@@ -4,7 +4,7 @@
 TARGET = test
 
 # Lista de arquivos .c (source) que compõem seu programa
-SOURCES = ../os/queue/multiqueue.c ../os/queue/queue.c ../os/scheduler/scheduler.c test.c
+SOURCES = test.c ../os/os.c ../os/queue/multiqueue.c ../os/queue/queue.c ../os/scheduler/scheduler.c ../os/threads/threads.c
 
 # Gere a lista de arquivos .o a partir dos arquivos .c
 OBJECTS = $(SOURCES:.c=.o)

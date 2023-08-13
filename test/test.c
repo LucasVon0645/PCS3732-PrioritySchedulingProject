@@ -1,38 +1,20 @@
 #include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include "test.h"
 
 int main()
 {
+    printf("TEST BEGIN!\n");
+    test_boot();
+    printf("BOOT END!\n");
+
     int change_context = 0;
-
-    printf("Test begin!\n");
-    tcb_t* tcb0 = create_tcb(0, 0, 2, 0);
-    tcb_t* tcb1 = create_tcb(1, 0, 2, 0);
-    tcb_t* tcb2 = create_tcb(2, 1, 5, 0);
-    tcb_t* tcb3 = create_tcb(3, 1, 5, 0);
-    tcb_t* tcb4 = create_tcb(4, 2, 10, 0);
-    tcb_t* tcb5 = create_tcb(5, 2, 10, 0);
-
-    queues_test_config();
-
-    queue_t* queue0 = multi_queue.queues[0];
-    queue_t* queue1 = multi_queue.queues[1];
-    queue_t* queue2 = multi_queue.queues[2];
-
-    enqueue(queue0, tcb0);
-    enqueue(queue0, tcb1);
-    enqueue(queue1, tcb2);
-    enqueue(queue1, tcb3);
-    enqueue(queue2, tcb4);
-    enqueue(queue2, tcb5);
-    update_next_thread(&multi_queue);
-    mfqs_scheduler();
-
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 4; i++) {
         printf("\n Update threads %d \n", i);
-        change_context = mfqs_update_threads();
+        change_context = mfqs_update_threads(0);
+        printf("\n Before fork %d \n", i);
+        print_multi_queue(&multi_queue);
+        _fork();
+        printf("\n After fork %d \n", i);
         print_multi_queue(&multi_queue);
         if (change_context) {
             printf("\n MUDANCA DE CONTEXTO \n");
@@ -48,29 +30,74 @@ int main()
 }
 
 
-void queues_test_config() {
+void test_boot() {
+    latest_tid = 1;
+
+    tcb_t *main_tcb = create_tcb(0, 2, (uint32_t)main2, (uint32_t)halt);
+    tcb_t* tcb1 = create_tcb(0, 2, (uint32_t)main2, (uint32_t)halt);
+    tcb_t* tcb2 = create_tcb(1, 5, (uint32_t)main2, (uint32_t)halt);
+    tcb_t* tcb3 = create_tcb(1, 5, (uint32_t)main2, (uint32_t)halt);
+    tcb_t* tcb4 = create_tcb(2, 10, (uint32_t)main, (uint32_t)halt);
+    tcb_t* tcb5 = create_tcb(2, 10, (uint32_t)main, (uint32_t)halt);
+
+    for (int i = 0; i < 6; i++) main_tcb->stack[i] = i;
+    for (int i = 0; i < 6; i++) tcb1->stack[i] = i+10;
+    for (int i = 0; i < 6; i++) tcb2->stack[i] = i+20;
+
     queue_t *queue0 = (queue_t*)malloc(sizeof(queue_t));
     queue0->quanta_limit = 2;
     queue0->age_limit = 5;
+    queue0->head = NULL;
 
     queue_t *queue1 = (queue_t*)malloc(sizeof(queue_t));
     queue1->quanta_limit = 5;
-    queue1->age_limit = 4;
+    queue1->age_limit = 10;
+    queue1->head = NULL;
 
     queue_t *queue2 = (queue_t*)malloc(sizeof(queue_t));
     queue2->quanta_limit = 10;
-    queue2->age_limit = 20;
+    queue2->age_limit = 30;
+    queue2->head = NULL;
 
     multi_queue.queues[0] = queue0;
     multi_queue.queues[1] = queue1;
     multi_queue.queues[2] = queue2;
+
+    add_to_multiqueue(main_tcb, &multi_queue);
+    add_to_multiqueue(tcb1, &multi_queue);
+    add_to_multiqueue(tcb2, &multi_queue);
+    add_to_multiqueue(tcb3, &multi_queue);
+    add_to_multiqueue(tcb4, &multi_queue);
+    add_to_multiqueue(tcb5, &multi_queue);
+
+    update_next_thread(&multi_queue);
+    mfqs_scheduler();
 }
+
+void halt() {
+    return;
+}
+
+void main1() {
+    return;
+}
+
+void main2() {
+    return;
+}
+
+
 
 void print_tcb(tcb_t* tcb) {
     printf(" Thread ID: %u\n", tcb->tid);
     printf(" Priority: %u\n", tcb->priority);
     printf(" Execution Slots: %u\n", tcb->exc_slots);
     printf(" Age: %u\n", tcb->age);
+    printf(" Stack position: ");
+    print_binary(&(tcb->stack[0]));
+    printf("\n");
+    printf(" First stack values:\n");
+    for (int i = 0; i < 6; i++) printf("%u ", tcb->stack[i]);
 }
 
 void print_queue(queue_t* queue) {
@@ -121,18 +148,14 @@ void print_multi_queue(multiqueue_t* multiqueue) {
     printf("\n*************** multi queue end ***************\n");
 }
 
-// Função para criar um elemento tcb_t
-tcb_t* create_tcb(uint32_t tid, uint32_t priority, uint32_t exc_slots, uint32_t age) {
-    tcb_t* new_tcb = (tcb_t*)malloc(sizeof(tcb_t));
-    
-    for (int i = 0; i < 17; ++i) {
-        new_tcb->regs[i] = 0; // Inicializa os registradores
+void print_binary(int num) {
+    // Size of an integer in bytes
+    int numBits = sizeof(num) * 8;
+
+    for (int i = numBits - 1; i >= 0; i--) {
+        // Extract the i-th bit using bitwise right shift
+        int bit = (num >> i) & 1;
+        printf("%d", bit);
     }
-    
-    new_tcb->tid = tid;
-    new_tcb->priority = priority;
-    new_tcb->exc_slots = exc_slots;
-    new_tcb->age = age;
-    
-    return new_tcb;
+    printf("\n");
 }

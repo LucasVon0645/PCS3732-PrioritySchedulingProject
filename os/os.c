@@ -1,6 +1,4 @@
-#include "types.h"
-#include "threads/threads.h"
-#include "scheduler/scheduler.h"
+#include "os.h"
 
 extern tcb_t *current_tcb;
 extern multiqueue_t multi_queue;

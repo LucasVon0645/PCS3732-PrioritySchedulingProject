@@ -1,5 +1,5 @@
 #include "threads.h"
-#define stack_start(_tcb) ((uint32_t)(_tcb + sizeof(tcb_t) - sizeof(uint8_t)))
+#define stack_start(_tcb) ((uint32_t*)(_tcb + sizeof(tcb_t) - sizeof(uint8_t)))
 
 int latest_tid;
 
