@@ -74,7 +74,7 @@ start:
    cmp r0, #1          // função yield: troca de thread
    beq thread_switch_swi
 
-   cmp r0, #2          // função getpid: retorna a identificação do thread atual
+   cmp r0, #2          // função get_pid: retorna a identificação do thread atual
    beq handle_getid
 
    cmp r0, #5
@@ -82,10 +82,13 @@ start:
 
    push {r1-r3, lr}
    cmp r0, #3
-   bleq get_current_priority // função get_current_priority: retorna prioridade do thread atual
+   bleq _get_current_priority // função get_current_priority: retorna prioridade do thread atual
 
    cmp r0, #4
-   bleq get_current_cpu_time // função get_cpu_time: retorna tempo de cpu usado até o momento pela thread atual
+   bleq _get_current_cpu_time // função get_cpu_time: retorna tempo de cpu usado até o momento pela thread atual
+
+   cmp r0, #6
+   bleq _fork // função fork copia a thread atual
    pop {r1-r3, lr}
 
    // outras funções do kernel vão aqui...
@@ -122,7 +125,7 @@ exit_handle_irq:
 
 /* Retorna a identificação do thread atual. */
 handle_getid:
-   ldr r0, =tid
+   ldr r0, =current_tid
    ldr r0, [r0]
    movs pc, lr
 

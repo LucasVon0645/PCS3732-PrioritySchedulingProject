@@ -3,7 +3,7 @@
 
 multiqueue_t multi_queue;
 tcb_t *current_tcb;
-volatile uint32_t tid;
+volatile uint32_t current_tid;
 
 int mfqs_update_threads(int yield) {
     current_tcb->cpu_time++; // Incrementa o tempo de cpu (qtde total de execuções de slots de tempo)
@@ -36,22 +36,12 @@ void mfqs_scheduler() {
     if (current_tcb != next_tcb) {
         next_tcb->age = 0;
         current_tcb = next_tcb;
-        tid = current_tcb->tid;
+        current_tid = current_tcb->tid;
     }
 }
 
-int get_current_priority() {
-    int p = current_tcb->priority;
-    return p;
-}
-
-int get_current_cpu_time() {
-    int cpu_time = current_tcb->cpu_time;
-    return cpu_time;
-}
-
 void finish_current_thread() {
-    remove_thread_from_multiqueue(current_tcb, &multi_queue);
+    remove_from_multiqueue(current_tcb, &multi_queue);
 
     // Faz o aging de todas as threads, exceto a que executou agora
     age_all_threads(&multi_queue);

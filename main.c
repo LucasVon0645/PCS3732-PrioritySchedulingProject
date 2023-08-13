@@ -1,8 +1,8 @@
-#include "os/iomanager.h"
-#include "os/os.h"
+#include "os/iomanager/iomanager.h"
+#include "os/syscalls/syscalls.h"
 
 int main(void) {
-   int pid = getpid();
+   int pid = get_pid();
    for(;;) {
       int priority = get_priority();
       updateLed(priority);
@@ -11,7 +11,7 @@ int main(void) {
 }
 
 int main2(void) {
-   int pid = getpid();
+   int pid = get_pid();
    int time_to_halt = 10;
    int cpu_time = 0;
    int stop = 0;

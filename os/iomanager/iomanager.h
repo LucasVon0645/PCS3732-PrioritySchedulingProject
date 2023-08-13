@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include "../evlt7t/evlt7t.h"
+#include "../../evlt7t/evlt7t.h"
 
 static const uint32_t segments[16] = {
     0b1011111, // 0
