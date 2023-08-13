@@ -1,16 +1,13 @@
 #include "os/iomanager.h"
 #include "os/os.h"
 
-int main(void) {
-   int pid = getpid();
+int os_thread(void) {
    for(;;) {
-      int priority = get_priority();
-      updateLed(priority);
-      updateDisplay(pid);
+      showOsThreadDisplay();
    }
 }
 
-int main2(void) {
+int user_thread(void) {
    int pid = getpid();
    int time_to_halt = 10;
    int cpu_time = 0;

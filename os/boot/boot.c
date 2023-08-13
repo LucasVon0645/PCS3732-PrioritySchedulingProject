@@ -1,13 +1,15 @@
 #include "boot.h"
 
 void boot() {
-    tcb_t *main_tcb = create_tcb(0, 0, 2, 0, (uint32_t)main2);
 
-    tcb_t* tcb1 = create_tcb(1, 0, 2, 0, (uint32_t)main2);
-    tcb_t* tcb2 = create_tcb(2, 1, 5, 0, (uint32_t)main2);
-    tcb_t* tcb3 = create_tcb(3, 1, 5, 0, (uint32_t)main2);
-    tcb_t* tcb4 = create_tcb(4, 2, 10, 0, (uint32_t)main);
-    tcb_t* tcb5 = create_tcb(5, 2, 10, 0, (uint32_t)main);
+    os_tcb = create_tcb(0, 0, 2, 0, (uint32_t)os_thread);
+
+    tcb_t* user_tcb1 = create_tcb(1, 0, 2, 0, (uint32_t)user_thread);
+    tcb_t* user_tcb2 = create_tcb(2, 0, 2, 0, (uint32_t)user_thread);
+    tcb_t* user_tcb3 = create_tcb(3, 1, 5, 0, (uint32_t)user_thread);
+    tcb_t* user_tcb4 = create_tcb(4, 1, 5, 0, (uint32_t)user_thread);
+    tcb_t* user_tcb5 = create_tcb(5, 2, 10, 0, (uint32_t)user_thread);
+    tcb_t* user_tcb6 = create_tcb(6, 2, 10, 0, (uint32_t)user_thread);
 
     queue_t *queue0 = (queue_t*)malloc(sizeof(queue_t));
     queue0->quanta_limit = 2;
@@ -23,18 +25,17 @@ void boot() {
     queue2->quanta_limit = 10;
     queue2->age_limit = 30;
     queue2->head = NULL;
-    
 
     multi_queue.queues[0] = queue0;
     multi_queue.queues[1] = queue1;
     multi_queue.queues[2] = queue2;
 
-    enqueue(queue0, main_tcb);
-    enqueue(queue0, tcb1);
-    enqueue(queue1, tcb2);
-    enqueue(queue1, tcb3);
-    enqueue(queue2, tcb4);
-    enqueue(queue2, tcb5);
+    enqueue(queue0, user_tcb1);
+    enqueue(queue0, user_tcb2);
+    enqueue(queue1, user_tcb3);
+    enqueue(queue1, user_tcb4);
+    enqueue(queue2, user_tcb5);
+    enqueue(queue2, user_tcb6);
 
     update_next_thread(&multi_queue);
 
