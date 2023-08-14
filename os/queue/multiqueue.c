@@ -4,7 +4,7 @@ void upgrade_thread(tcb_t* thread, multiqueue_t* multi_queue) {
     if (!(thread->priority)) return;
 
     queue_t* current_queue = multi_queue->queues[thread->priority];
-    dequeue_by_tid(current_queue, thread->tid);
+    dequeue_by_tid(current_queue, thread->tid, 0);
 
     queue_t* next_queue = multi_queue->queues[--thread->priority];
     thread->age = 0;
@@ -15,7 +15,7 @@ void upgrade_thread(tcb_t* thread, multiqueue_t* multi_queue) {
 void downgrade_thread(tcb_t* thread, multiqueue_t* multi_queue) {
 
     queue_t* current_queue = multi_queue->queues[thread->priority];
-    dequeue_by_tid(current_queue, thread->tid);
+    dequeue_by_tid(current_queue, thread->tid, 0);
 
     queue_t* next_queue = (thread->priority == NUM_OF_QUEUES - 1)
                         ? current_queue
@@ -28,10 +28,9 @@ void downgrade_thread(tcb_t* thread, multiqueue_t* multi_queue) {
 
 void keep_thread_on_same_queue(tcb_t* thread, multiqueue_t* multi_queue) {
     queue_t* current_queue = multi_queue->queues[thread->priority];
-    dequeue_by_tid(current_queue, thread->tid);
+    dequeue_by_tid(current_queue, thread->tid, 0);
 
     thread->age = 0;
-    thread->exc_slots = current_queue->quanta_limit;
     enqueue(current_queue, thread);
 }
 
@@ -81,5 +80,5 @@ void add_to_multiqueue(tcb_t* thread, multiqueue_t* multi_queue) {
 
 void remove_from_multiqueue(tcb_t* thread, multiqueue_t* multi_queue) {
     queue_t* current_queue = multi_queue->queues[thread->priority];
-    dequeue_by_tid(current_queue, thread->tid);
+    dequeue_by_tid(current_queue, thread->tid, 1);
 }

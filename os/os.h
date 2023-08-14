@@ -1,4 +1,4 @@
-#include "types.h"
+#include "utils/types.h"
 #include "threads/threads.h"
 #include "scheduler/scheduler.h"
 

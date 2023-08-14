@@ -1,4 +1,4 @@
-FONTES = os/kernel.s os/stubs.c os/os.c os/boot/boot.c os/iomanager/timer.c os/iomanager/interrupts.c os/iomanager/iomanager.c os/syscalls/syscalls.c os/threads/threads.c os/scheduler/scheduler.c os/queue/multiqueue.c os/queue/queue.c main.c
+FONTES = os/kernel.s os/stubs.c os/os.c os/boot/boot.c os/iomanager/timer.c os/iomanager/interrupts.c os/iomanager/iomanager.c os/syscalls/syscalls.c os/threads/threads.c os/scheduler/scheduler.c os/queue/multiqueue.c os/queue/queue.c os/utils/utils.c main.c
 
 #
 # Arquivos de saída 

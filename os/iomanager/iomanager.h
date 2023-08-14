@@ -29,3 +29,5 @@ void setupDisplay();
 
 void updateLed(led_t ledColor);
 void updateDisplay(int value);
+
+void showOsThreadOnDisplay();

@@ -32,3 +32,16 @@ void updateDisplay(int value) {
         }
     }
 }
+
+void showOsThreadOnDisplay() {
+    // Segmento g -> GPIO 15
+    // 0b0100000
+    uint32_t newCode = 0b0100000 << 10;
+    uint32_t mask = 0b1111111 << 10;
+
+    if ((IOPDATA & mask) != newCode) {
+        IOPDATA &= ~(mask);
+        IOPDATA |= newCode;
+    }
+}
+

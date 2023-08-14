@@ -1,6 +1,6 @@
 #include "queue.h"
 
-void _dequeue(queue_t* queue, node_t* node) {
+void _dequeue(queue_t* queue, node_t* node, int delete) {
     node_t* previous_node = node->previous_node;
     node_t* next_node = node->next_node;
 
@@ -23,10 +23,15 @@ void _dequeue(queue_t* queue, node_t* node) {
         next_node->previous_node = previous_node;
         if (queue->head == node) queue->head = next_node;
     }
+
+    if (delete) {
+        aligned_free(node->tcb);
+        free(node);
+    }
 }
 
 
-tcb_t* dequeue_by_tid(queue_t* queue, uint32_t tid) {
+tcb_t* dequeue_by_tid(queue_t* queue, uint32_t tid, int delete) {
     node_t* queue_head = queue->head;
     if (!(queue_head)) return NULL;
 
@@ -38,7 +43,7 @@ tcb_t* dequeue_by_tid(queue_t* queue, uint32_t tid) {
         current_node = current_node->next_node;
     }
 
-    _dequeue(queue, current_node);
+    _dequeue(queue, current_node, delete);
     return current_node->tcb;
 }
 

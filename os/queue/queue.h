@@ -1,9 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include <stdlib.h>
-#include "../types.h"
-
-#define MAX_QUEUE_SIZE 10
+#include "../utils/utils.h"
+#include "../utils/types.h"
 
 
 typedef struct node_t {
@@ -21,4 +20,4 @@ typedef struct {
 } queue_t;
 
 void enqueue(queue_t* queue, tcb_t* new_tcb);
-tcb_t* dequeue_by_tid(queue_t* queue, uint32_t tid);
+tcb_t* dequeue_by_tid(queue_t* queue, uint32_t tid, int delete);

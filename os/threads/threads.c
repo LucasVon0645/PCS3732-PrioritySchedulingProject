@@ -8,22 +8,6 @@ uint32_t get_next_tid(void) {
     return latest_tid++;
 }
 
-void* aligned_malloc(size_t required_bytes, size_t alignment) {
-    void* p1;
-    void** p2;
-    int offset = alignment - 1 + sizeof(void*);
-    if ((p1 = (void*)malloc(required_bytes + offset)) == NULL) {
-      return NULL;
-    }
-    p2 = (void**)(((size_t)(p1) + offset) & ~(alignment - 1));
-    p2[-1] = p1;
-    return p2;
-}
-
-void aligned_free(void *p) {
-    free(((void**)p)[-1]);
-}
-
 // Função para criar um elemento tcb_t
 tcb_t* create_tcb(
     uint32_t priority,

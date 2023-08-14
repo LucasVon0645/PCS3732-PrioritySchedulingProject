@@ -1,18 +1,15 @@
 #include <stdio.h>
 #include "test.h"
 
-int main()
-{
+int main() {
     printf("TEST BEGIN!\n");
     test_boot();
     printf("BOOT END!\n");
 
     int change_context = 0;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 2; i++) {
         printf("\n Update threads %d \n", i);
         change_context = mfqs_update_threads(0);
-        printf("\n Before fork %d \n", i);
-        print_multi_queue(&multi_queue);
         _fork();
         printf("\n After fork %d \n", i);
         print_multi_queue(&multi_queue);
@@ -26,8 +23,45 @@ int main()
         }
     }
 
+    printf("\n\n\n");
+
+    for (int i = 0; i < 4; i++) {
+        printf("\n Remove threads %d \n", i);
+        print_multi_queue(&multi_queue);
+        finish_current_thread();
+        mfqs_scheduler();
+    }
+
     return 0;
 }
+
+
+// int main() {
+//     printf("TEST BEGIN!\n");
+//     test_boot();
+//     printf("BOOT END!\n");
+
+//     int change_context = 0;
+//     for (int i = 0; i < 4; i++) {
+//         printf("\n Update threads %d \n", i);
+//         change_context = mfqs_update_threads(0);
+//         printf("\n Before fork %d \n", i);
+//         print_multi_queue(&multi_queue);
+//         _fork();
+//         printf("\n After fork %d \n", i);
+//         print_multi_queue(&multi_queue);
+//         if (change_context) {
+//             printf("\n MUDANCA DE CONTEXTO \n");
+//             printf("ANTES\n");
+//             print_tcb(current_tcb);
+//             mfqs_scheduler();
+//             printf("DEPOIS\n");
+//             print_tcb(current_tcb);
+//         }
+//     }
+
+//     return 0;
+// }
 
 
 void test_boot() {
@@ -129,6 +163,7 @@ void print_queue(queue_t* queue) {
 void print_multi_queue(multiqueue_t* multiqueue) {
     printf("\n*************** multi queue start ***************\n");
     printf("\nMulti Queue:\n");
+    printf("Current thread: %d\n", current_tcb->tid);
     for (int i = 0; i < 3; ++i) {
         if ( multiqueue->queues[i]->head) {
             int tail_tid = multiqueue->queues[i]->head->previous_node->tcb->tid;
