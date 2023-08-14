@@ -9,9 +9,8 @@ int user_thread(void) {
    int pid = get_pid();
    int time_to_halt = 10;
    int cpu_time = 0;
-   int stop = 0;
 
-   while(!stop) {
+   for(;;) {
       int priority = get_priority();
       updateLed(priority);
       updateDisplay(pid);
@@ -19,9 +18,7 @@ int user_thread(void) {
       cpu_time = get_cpu_time();
 
       if (cpu_time > time_to_halt) {
-         stop = 1;
+         halt();
       }
    }
-
-   return 0;
 }

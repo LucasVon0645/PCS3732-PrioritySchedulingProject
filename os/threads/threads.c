@@ -1,5 +1,4 @@
 #include "threads.h"
-#define stack_start(_tcb) ((uint32_t*)(_tcb + sizeof(tcb_t) - sizeof(uint8_t)))
 
 int latest_tid;
 
@@ -22,7 +21,7 @@ tcb_t* create_tcb(
         new_tcb->regs[i] = 0;
     new_tcb->regs[15] = entry_point;
     new_tcb->regs[14] = (uint32_t)exit_point;
-    new_tcb->regs[13] = stack_start(new_tcb);
+    new_tcb->regs[13] = &(new_tcb->stack[4095]);
 
     // Inicializa outros atributos da TCB
     new_tcb->tid = get_next_tid();
@@ -44,8 +43,8 @@ tcb_t* copy_tcb(tcb_t* original_tcb) {
     *new_tcb = *original_tcb;
 
     // Modificamos sp para apontar para o novo stack
-    uint32_t sp_offset = stack_start(original_tcb) - original_tcb->regs[13];
-    new_tcb->regs[13] = stack_start(new_tcb) - sp_offset;
+    uint32_t sp_offset = &(original_tcb->stack[4095]) - original_tcb->regs[13];
+    new_tcb->regs[13] = &(new_tcb->stack[4095]) - sp_offset;
 
     // Modifica tid da thread
     new_tcb->tid = get_next_tid();

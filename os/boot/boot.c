@@ -31,7 +31,6 @@ void boot() {
     multi_queue.queues[1] = queue1;
     multi_queue.queues[2] = queue2;
 
-    add_to_multiqueue(os_tcb, &multi_queue);
     add_to_multiqueue(user_tcb1, &multi_queue);
     add_to_multiqueue(user_tcb2, &multi_queue);
     add_to_multiqueue(user_tcb3, &multi_queue);
