@@ -33,15 +33,18 @@ void updateDisplay(int value) {
     }
 }
 
-void showOsThreadDisplay() {
-    // Segmento g -> GPIO 15
-    // 0b0100000
-    uint32_t newCode = 0b0100000 << 10;
-    uint32_t mask = 0b1111111 << 10;
+void showOsThreadDisplayAndLEDs() {
+    uint32_t newCode = 0b1011000 << 10;
+    uint32_t displayMask = 0b1111111 << 10;
 
-    if ((IOPDATA & mask) != newCode) {
-        IOPDATA &= ~(mask);
+    if ((IOPDATA & displayMask) != newCode) {
+        IOPDATA &= ~(displayMask);
         IOPDATA |= newCode;
     }
+
+    // liga todos os leds
+    uint32_t ledsMask = 0b1111 << 4;
+    IOPDATA |= ledsMask;
+
 }
 
