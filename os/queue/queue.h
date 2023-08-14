@@ -2,17 +2,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define MAX_QUEUE_SIZE 10
-
-
 typedef struct {
     uint32_t regs[17];   // contexto (17 registradores)
     uint32_t tid;        // identificador da thread
     uint32_t priority;   // prioridade atual da thread
-    uint32_t exc_slots;  // numero de execucoes restantes
-    uint32_t age;        // numero de execucoes restantes
-    uint32_t cpu_time;   // quantidade total de execucoes de slots de tempo da thread
-    uint8_t stack[4096]; // stack
+    uint32_t exc_slots;  // número de execuções restantes
+    uint32_t age;        // tempo de espera da thread na fila (aging)
+    uint32_t cpu_time;   // quantidade total de execuções de slots de tempo da thread
 } tcb_t;
 
 
