@@ -31,7 +31,6 @@ void keep_thread_on_same_queue(tcb_t* thread, multiqueue_t* multi_queue) {
     dequeue_by_tid(current_queue, thread->tid);
 
     thread->age = 0;
-    thread->exc_slots = current_queue->quanta_limit;
     enqueue(current_queue, thread);
 }
 

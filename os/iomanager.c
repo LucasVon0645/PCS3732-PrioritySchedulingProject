@@ -32,3 +32,19 @@ void updateDisplay(int value) {
         }
     }
 }
+
+void showOsThreadDisplayAndLEDs() {
+    uint32_t newCode = 0b1011000 << 10;
+    uint32_t displayMask = 0b1111111 << 10;
+
+    if ((IOPDATA & displayMask) != newCode) {
+        IOPDATA &= ~(displayMask);
+        IOPDATA |= newCode;
+    }
+
+    // liga todos os leds
+    uint32_t ledsMask = 0b1111 << 4;
+    IOPDATA |= ledsMask;
+
+}
+
