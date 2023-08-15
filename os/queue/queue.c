@@ -4,20 +4,20 @@ void _dequeue(queue_t* queue, node_t* node) {
     node_t* previous_node = node->previous_node;
     node_t* next_node = node->next_node;
 
-    // No elements in list
+    // Trtamento para quando não há elementos na fila
     if (!(queue->head)) return;
 
-    // Single element in the list
+    // Remoção para quando há apenas um elemento na fila
     if (next_node == node) queue->head = NULL;
 
-    // Only two elements in the list
+    // Tratamento para quando há dois elementos apenas na fila
     else if (next_node == previous_node) {
         next_node->next_node = next_node;
         next_node->previous_node = next_node;
         queue->head = next_node;
     }
 
-    // Arbitrary number of elements in the list
+    // Tratamento para demais casos
     else {
         previous_node->next_node = next_node;
         next_node->previous_node = previous_node;

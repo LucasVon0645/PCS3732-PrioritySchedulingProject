@@ -71,10 +71,10 @@ start:
    msr cpsr, r1
    pop {r1}
 
-   cmp r0, #1          // função yield: troca de thread
-   beq thread_switch_swi
+   cmp r0, #1          // syscall yield: troca de thread
+   beq handle_yield_syscall
 
-   cmp r0, #2          // função getpid: retorna a identificação do thread atual
+   cmp r0, #2          // syscall getpid: retorna a identificação da thread atual
    beq handle_getid
 
    cmp r0, #5
@@ -82,20 +82,18 @@ start:
 
    push {r1-r3, lr}
    cmp r0, #3
-   bleq get_current_priority // função get_current_priority: retorna prioridade do thread atual
+   bleq get_current_priority // syscall get_current_priority: retorna prioridade da thread atual
 
    cmp r0, #4
-   bleq get_current_cpu_time // função get_cpu_time: retorna tempo de cpu usado até o momento pela thread atual
+   bleq get_current_cpu_time // syscall get_cpu_time: retorna tempo total de cpu usado pela thread atual
    pop {r1-r3, lr}
 
-   // outras funções do kernel vão aqui...
-   movs pc, lr          // retorna
+   movs pc, lr  // retorno
 
-/* Tratamento das interrupções IRQ */
+/* 
+* Tratamento das interrupções IRQ: verifica origem da interrupção
+*/
 handle_irq:
-  /*
-   * Salva registradores e verifica causa da interrupção.
-   */
   push {r0-r3, lr}
   ldr r1, =INTPND
   ldr r0, [r1]  // r0 contém INTPND
@@ -119,6 +117,13 @@ exit_handle_irq:
   bl recognize_all_interrupts
   pop {r0-r3, lr}
   subs pc, lr, #4 // retorno para ponto de execução da atual thread sem troca de contexto
+
+handle_yield_syscall:
+  mov r0, #1 // passa yield = 1 como parâmetro de mfqs_update_threads
+  bl mfqs_update_threads // atualiza a thread com parâmetro yield = 1 passado em r0
+  cmp r0, #1 // verifica se o retorno de mfqs_update_threads é 1 (troca de contexto necessária nesse caso)
+  beq thread_switch_swi // saída da execução da syscall caso contrário
+  movs pc, lr
 
 /* Retorna a identificação do thread atual. */
 handle_getid:
@@ -151,8 +156,9 @@ thread_switch_swi:
    pop {r1}
    str r1, [r0]
 
-   // escala o próximo processo 
+   // escala o próximo processos e realiza troca de contexto
    bl mfqs_scheduler
+   b context_change
 
 /* Troca de contextos com escalonamento preemptivo */
 thread_switch_irq:
