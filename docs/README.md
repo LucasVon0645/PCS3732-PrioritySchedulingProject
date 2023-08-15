@@ -38,22 +38,23 @@ Na atual versão deste repositório, o código utilizado para desenvolvimento e 
 2. [os](../os): diretório que contém a implementação do escalonador e das principais funcionalidades desempenhadas pelo sistema operacional, as quais são necessárias ao funcionamento do MFQS;
 3. [test](../test): diretório criado para execução de testes pontuais do funcionamento do escalonador
 
-
-No diretório [os](../os), estão presentes:
+As informações do diretório [os](../os) são organizadas da seguinte forma:
 - [kernel.s](../os/kernel.s): contém a implementação das principais funcionalidade em baixo nível necessárias ao funcionamento do escalonador, tais como a funções de _dispatcher_ e pontos de entrada para o tratamento de interrupões e chamadas de sistema;
 - [os/scheduler](../os/scheduler): contém a implementação das políticas da do algoritmo MFQS conforme as decisões de projeto da equipe. Neste diretório, estão presentes a codificação de mecanismos como:
     - a busca na fila multi-nível pela próxima thread a ser executada
     - atualização dos parâmetros de cada thread envolvidos no escalonamento (slots de tempo restantes e tempo de espera)
     - mudança dinâmica da prioridade das _threads_
 - [os/boot](../os/boot): contém a implementação da função _void boot()_, a qual é responsável por inicializar as estruturas de dados da fila multi-nível e instanciar as threads a serem executadas na demonstração;
-- [os/queue](os/queue): contém a implementação da fila multi-nível utilizada pelo algoritmo MFQS. Nesse diretório, estão presentes:
-    - definação da interface da _Task Control Block_
-    - definição das interfaces de acesso às filas do escalonador
-    - codificação das rotinas que manipulam a fila multi-nível (inserção e deleção de _threads_)
-- [os/iomanager](../os/iomanager.c):
-- [os/interrupts](../os/interrupts):
-- [os/os](../os/os.c):
-- [os/stubs](../os/stubs.c):
+- [os/queue](os/queue): contém a implementação da fila multi-nível utilizada pelo algoritmo MFQS. Nesse diretório, estão presentes
+    - a definação da interface da _Task Control Block_ (TCB), o qual permite o armazenamento do contexto de cada _thread_
+    - a definição das interfaces de acesso às filas do escalonador
+    - a codificação das rotinas que manipulam a fila multi-nível (inserção e deleção de _threads_)
+- [os/iomanager](../os/iomanager.c): implemeta rotinas que configuram e acessam dispostivos de saída utilizados na demonstração do projeto;
+- [os/interrupts](../os/interrupts): contém rotinas responsáveis pela configuração e manipulação das interrupções de timer e do user_button da placa Evaluator7T;
+- [os/os](../os/os.c): contempla as interfaces e implementações das chamadas de sistema que permitem as _threads_
+    - acessarem informações disponíveis na TCB;
+    - executarem as funções de _yield_ e _halt_. Estas, por sua vez, são explicadas na seção subsequente de "Aspectos relevantes de implementação".
+- [os/stubs](../os/stubs.c): contém uma implementação da _stub_ `_sbrk(int incr)`, a qual permite, em muitos sistemas operacionais, o oferecimento do serviço de alocação de memória dinâmica. Tal _stub_ é atua como subsídio da função _malloc_, a qual é utilizada no projeto para a criação de _threads_ e das estruturas evolvidas na implementação do escalonador;
 
 ### Aspectos relevantes de implementação
 #### Função Yield
@@ -68,4 +69,4 @@ No diretório [os](../os), estão presentes:
 
 ### Agradecimentos Especiais
 - [Professor Bruno Abrantes Basseto](https://github.com/bru4bas)
-- Gabriel Zambelli
+- [Gabriel Zambelli](https://github.com/GabZamba)
