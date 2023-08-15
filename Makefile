@@ -16,7 +16,7 @@ OBJ = $(FONTES:.s=.o)
 OBJETOS = $(OBJ:.c=.o)
 
 #
-# OpÃ§Ãµes do linker
+# Opções do linker
 #
 LDOPTS = -L/usr/lib/gcc/arm-none-eabi/10.3.1/ -L/usr/lib/arm-none-eabi/lib
 LDOPTS += -lc -lgcc
