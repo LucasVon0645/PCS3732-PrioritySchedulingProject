@@ -1,22 +1,22 @@
 # Simple MFQS
-O projeto "Simple MFQS" objetiva oferecer uma **demonstração do funcionamento do algoritmo MFQS** (_Multi-Level Feedback Queue Scheduler_) em processador ARM-v4.
+O projeto "Simple MFQS" objetiva oferecer uma **demonstração do funcionamento do algoritmo MFQS** (_Multi-Level Feedback Queue Scheduler_) em processador físico ARM-v4.
 
 A implementação presente neste repositório foi realizada visando a execução de um escalonador MFQS na *placa _Evaluator7T_*, disponibilizada aos intergrantes da equipe no oferecimento da disciplina "Laboratório de Processadores" em 2023 (PCS3732 - 2023). Especificações referentes ao funcionamento da referida placa, tal como os recursos para o controle de interrupções e para acesso aos dispositivos de I/O, podem ser consultadas neste [link](https://developer.arm.com/documentation/dui0134/latest/).
 
 ### Sobre o escalonador implementado
 Como principal característica do algoritmo MFQS (_Multi-Level Feedback Queue Scheduler_), tem-se alocação de processos em uma estrutura de fila multi-nível. Nesta estrutura, cada nível agrupa processos com mesma prioridade de execução. 
 
-De modo a facilitar a demonstração do algoritmo, *optou-se por adotar apenas 3 níveis de prioridade na fila multi-nível prevista no MFQS*.
+De modo a facilitar a demonstração do algoritmo, **optou-se por adotar apenas 3 níveis de prioridade na fila multi-nível prevista no MFQS**.
 
 Dentre as diversas variantes possíveis do algortimo MFQS, optou-se por uma versão que contempla as seguintes funcionalidades
 1. **Controle de quantum dos processos** é realizado a partir de interrupções IRQ geradas por um **timer**;
 2. Filas de maior prioridade possuem limites de quantum de execução menores do que os níveis menos prioritários;
-3. Processos podem possuir sua prioridade aumentada caso apresentem um tempo de espera superior ao limites pré-estabelecido na fila em que se encontram (**_aging_**).
+3. Processos podem possuir sua prioridade aumentada caso apresentem um tempo de espera superior aos limites pré-estabelecido nas filas em que se encontram (**_aging_**).
 
-Para o entendimento mais aprofundo do funcionamento deste algoritmo e de seus obteivos, recomendamos a leitura do documento disponibilizado neste [link](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-sched-mlfq.pdf).
+Para o entendimento mais aprofundo do funcionamento deste algoritmo, bem como de seus objetivos, recomendamos a leitura do documento disponibilizado neste [link](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-sched-mlfq.pdf).
 
 ### Hipóteses simplificadoras
-Devido à complexidade envolvida no desenvolvimento de funcionalidades de manipulação de **processos reais** em um sistema operacional, optou-se por simplificar a demonstração do funcionamento do escalonador MFQS, neste projeto, para um **mecanismo de escalonamento de _threads_** ao invés de processos propriamente dito.
+Devido à complexidade envolvida no desenvolvimento de funcionalidades de manipulação de **processos reais** em um sistema operacional, optou-se por simplificar o funcionamento do escalonador MFQS deste projeto para um **mecanismo de escalonamento de _threads_**, ao invés de processos propriamente dito.
 
 As _threads_ executadas para essa finalidade consitem na execução das funções *os_thread* e *user_thread* declaradas no arquivo "./main.c". 
 
@@ -56,11 +56,38 @@ As informações do diretório [os](../os) são organizadas da seguinte forma:
     - executarem as funções de _yield_ e _halt_. Estas, por sua vez, são explicadas na seção subsequente de "Aspectos relevantes de implementação".
 - [os/stubs](../os/stubs.c): contém uma implementação da _stub_ `_sbrk(int incr)`, a qual permite, em muitos sistemas operacionais, o oferecimento do serviço de alocação de memória dinâmica. Tal _stub_ é atua como subsídio da função _malloc_, a qual é utilizada no projeto para a criação de _threads_ e das estruturas evolvidas na implementação do escalonador;
 
-### Aspectos relevantes de implementação
-#### Função Yield
+### Alguns aspectos relevantes de implementação
+#### Concessão de Tempo de Execução e Função Yield
+Para a simulação dos efeitos de uma concessão de tempo de execução realizada por uma _thread_ antes que seu respectivo _slot_ de tempo seja esgotado no algoritmo MFQS, foram implementadas duas funcionalidades.
+
+1. **Função `void yield( )`:** Uma _thread_ pode conceder tempo de execução a uma outra a partir da realização da chamada de sistema _yield_, implementada no projeto. Nessa chamada de sistema, a instrução `swi` prevista na arquitetura ARMv4 é executada logo após o registrador `R0` receber o código "1". Tal código permite o sistema operacional fictício do projeto identificar em [kernel.s](../os/kernel.s) que o serviço solicitado pela _thread_ corresponde a uma concessão do tempo de execução.
+
+2. **Interrupção de botão:** Na demonstração do projeto, de modo a facilitar a visualizaçãodo referido fenômeno de concessão de tempo de execução, optou-se por desenvolver uma rotina que retira a  _thread_ atual da execução em CPU assim que uma interrupção de botão da Evaluator é gerada. Para tanto, foi necessário implementar uma rotina em _assembly_ que realiza o tratamento de uma interrupção de botão da placa para essa finalidade. Nela, as mesmas rotinas usadas para implementação do serviço da chamada de sistema _yield_ também são chamadas.
+
+Em  ambos os casos, destaca-se que a _thread_ em execução é retirada da posição frontal de sua respectiva fila e deslocada para o final da mesma. Em outras palavras, a prioridade da _thread_ é mantida.
+ 
+Todavia, caso os _slots_ de tempo restantes da _thread_ em execução tenham sido esgotados, destaca-se que o rebaixamento de prioridade acontece, com a _thread_ sendo deslocada para o nível de prioridade imediatamente abaixo.
+
+Ressalta-se que tal mecanismo de rebaixamento é importante para evitar que uma _thread_ explore a chamada `yield` para se manter indefinidamente em uma mesma prioridade, o que poderia prejudicar a execução de outras _threads_.
+
 #### Função Halt
+De modo a permitir que a _thread_ em execução seja finalizada, criou-se uma chamada de sistema específica para esse propósito: `halt()`.
+
+Para a implementação dessa chamada de sistema, executa-se uma interrupção `swi`. O tratamento dessa interrupção de sistema envolve as seguintes ações:
+1. Remover o nó correspondente a _thread_ em execução é removida da estrutura da fila multinível;
+2. Realizar um novo escalonamento e troca de contexto;
+
+
 #### Condição de fila multinível vazia
-#### Chamadas de sistema
+Quando não há mais _threads_ a serem executadas, isto é, quando a fila multi-nível MFQS se encontra vazia, optou-se por codificar o escalonador para que ele escalone para execução uma thread específica, denominada de `os_thread`. Tal _thread_ é executada indefinidamente até que uma nova thread surja na fila multinível.
+
+#### Chamadas de sistema auxiliares
+
+De modo a permitir que _thread_ acesse informações armazenadas em sua TCB, tal como o seu respectivo tempo de CPU total, sua prioridade e seu identificador _tid_, também foram implementadas chamadas de sistema específicas para esses propósitos:
+
+1. `int getpid( )`: retorna o identificador `tid` da _thread_ que faz a chamada;
+2. `int get_priority( )`: retorna a prioridade da _thread_ que faz a chamada, podendo ser 0, 1 ou 2. Quanto maior o valor númerico da prioridade, menor a prioridade;
+3. `int get_cpu_time( )`: retorna o tempo total, em `ticks` de relógio, durante o qual uma _thread_ executou em CPU.
 
 ## Autores
 - [Dênio Araújo de Almeida](https://github.com/Denio-Almeida)
