@@ -1,7 +1,7 @@
 # Simple MFQS
 O projeto "Simple MFQS" objetiva oferecer uma **demonstração do funcionamento do algoritmo MFQS** (_Multi-Level Feedback Queue Scheduler_) em processador físico ARM-v4.
 
-A implementação presente neste repositório foi realizada visando a execução de um escalonador MFQS na *placa _Evaluator7T_*, disponibilizada aos intergrantes da equipe no oferecimento da disciplina "Laboratório de Processadores" em 2023 (PCS3732 - 2023). Especificações referentes ao funcionamento da referida placa, tal como os recursos para o controle de interrupções e para acesso aos dispositivos de I/O, podem ser consultadas neste [link](https://developer.arm.com/documentation/dui0134/latest/).
+A implementação presente neste repositório foi realizada visando a execução de um escalonador MFQS na *placa _Evaluator7T_*, disponibilizada aos integrantes da equipe no oferecimento da disciplina "Laboratório de Processadores" em 2023 (PCS3732 - 2023). Especificações referentes ao funcionamento da referida placa, tal como os recursos para o controle de interrupções e para acesso aos dispositivos de I/O, podem ser consultadas neste [link](https://developer.arm.com/documentation/dui0134/latest/).
 
 ### Sobre o escalonador implementado
 Como principal característica do algoritmo MFQS (_Multi-Level Feedback Queue Scheduler_), tem-se alocação de processos em uma estrutura de fila multi-nível. Nesta estrutura, cada nível agrupa processos com mesma prioridade de execução. 
