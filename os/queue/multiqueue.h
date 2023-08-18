@@ -4,8 +4,8 @@
 #define NUM_OF_QUEUES 3
 
 typedef struct {
-    queue_t* queues[NUM_OF_QUEUES];
-    tcb_t* next_thread;
+    queue_t* queues[NUM_OF_QUEUES];   // filas com prioridades
+    tcb_t* next_thread;   // proxima thread a ser despachada
 } multiqueue_t;
 
 void upgrade_thread(tcb_t* thread, multiqueue_t* multi_queue);

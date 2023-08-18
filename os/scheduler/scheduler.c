@@ -9,8 +9,9 @@ volatile uint32_t tid;
 int mfqs_update_threads(int yield) {
     current_tcb->cpu_time++; // Incrementa o tempo de cpu (qtde total de execuções de slots de tempo)
 
+    // Tratamento para caso em que não há mais threads a serem executadas
     if (!multi_queue.next_thread) {
-        update_next_thread( &multi_queue);
+        update_next_thread(&multi_queue);
         if (!multi_queue.next_thread) return 0;
         else return 1;
     }
