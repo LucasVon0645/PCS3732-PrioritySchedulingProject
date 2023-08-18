@@ -21,10 +21,11 @@ typedef struct node_t {
  
 // Estrutura da tabela de TCBs
 typedef struct {
-    node_t* head;
+    node_t* head;   // cabeca da fila
     uint32_t quanta_limit;
     uint32_t age_limit;
 } queue_t;
+
 
 void enqueue(queue_t* queue, tcb_t* new_tcb);
 tcb_t* dequeue_by_tid(queue_t* queue, uint32_t tid);
