@@ -35,6 +35,8 @@ int __attribute__((naked)) get_cpu_time(void) {
                    "pop {pc}");
 }
 
+// Chamada de sistema halt()
+// Usada para terminar a execucao de uma thread
 void __attribute__((naked)) halt(void) {
       asm volatile("mov r0, #5 \n\t"
                    "swi #0     \n\t");
